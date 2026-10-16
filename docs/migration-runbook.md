@@ -19,17 +19,17 @@ See docs/permission-register.md. Production column is the target.
 ## 3. Terraform state
 | State key | Location | Holds | Who can read / write |
 |---|---|---|---|
-| `okta-inventory` | TBD | Okta users, groups, apps, policies (contains PII (personally identifiable information)) | TBD |
-| `legacy` | TBD | Brownfield Entra objects | TBD |
+| `okta-inventory` | `stiaclabtfstate02/tfstate-prod/okta-inventory/terraform.tfstate` (westus3; versioning, 7-day soft delete, Entra ID auth only) | Okta groups, apps, app group assignments, zone, policies and rules, authorization server. No users or memberships (they go to Blob `okta-exports`) | Write: `iac-reader` (GitHub environment `okta-read`), owner for break-fix (register #8, #10) |
+| `legacy` | `tfstate-prod/entra/legacy/terraform.tfstate` (planned) | Brownfield Entra objects | TBD |
 | `platform` | TBD | Shared Entra objects | TBD |
 | `waves/<wave>` | TBD | One wave's apps | TBD |
 
 ## 4. Inventory (source)
 | Step | Status | Notes |
 |---|---|---|
-| Import blocks and `-generate-config-out` | Draft | |
-| Normalize generated HCL (HashiCorp Configuration Language); time per app | Draft | |
-| Nightly snapshot and drift | Draft | |
+| Import blocks and `-generate-config-out` | Run 1 | 29 objects; users and memberships excluded from Git. Findings 2026-10-16 "Okta inventory imported and normalized" |
+| Normalize generated HCL (HashiCorp Configuration Language); time per app | Run 1 | Wrong-attribute table in the same entry; first app of each type sets the pattern, the rest are near copies |
+| Nightly snapshot and drift | Run 1 | `snapshot.yml`: green run 38875055268, drift run 38875619039 (plan exit 2). Second green nightly run pending |
 
 ## 5. Per-app migration
 ### SAML (Security Assertion Markup Language) app
