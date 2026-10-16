@@ -273,3 +273,32 @@ Current phase set to 1 at the top of this log.
 - Evidence: seed script output (owner session); Okta system log events `policy.evaluate_sign_on` ENROLL and `app.generic.unauth_app_access_attempt` (2026-10-16 06:42 to 07:07 UTC); users API `passwordChanged` 07:20:46 to 07:20:48 UTC; `verify-reader.sh` output above.
 - Change to the client plan, if any: (1) Inventory scopes must include `okta.networkZones.read`; the build-phases list of seven does not, and zones return 403. (2) Built-in Okta apps are invisible to the read-only OAuth identity; decide whether the inventory needs them. (3) Brownfield import will see admin-modified built-in policies (Okta Dashboard catch-all); expect that in the client org too. (4) New users without an enrolled factor cannot pass a 2FA catch-all; the client migration needs a first-factor enrollment path.
 - Accepted risks added, if any: Okta Dashboard sign-in is password only in the lab org.
+
+## 2026-10-16, Run 1, Lab Phase 1, Okta inventory imported and normalized
+- What the docs said: docs/build-phases.md Lab Phase 1 steps 3 to 5: `okta/okta` `~> 7.0`, OAuth service app auth, one import block per object, `-generate-config-out`, normalize into modules, time each app, list every wrong attribute; goal zero changes.
+- What actually happened:
+  - Versions: Terraform 1.16.4, `okta/okta` 7.0.0 (newest release on 2026-10-16). Pinned `= 7.0.0` because `.terraform.lock.hcl` is git-ignored, so `~> 7.0` would float.
+  - Provider arguments `org_name`, `base_url`, `client_id`, `private_key_id`, `private_key`, `scopes`, `max_api_capacity` checked against the 7.0.0 schema. `private_key` accepts a file path (`OKTA_API_PRIVATE_KEY=~/.okta-lab/iac-okta-reader.pem`), so the key never enters an environment variable or a repo file.
+  - Added scope `okta.networkZones.read` to `iac-okta-reader` (register #6). Okta returned HTTP 400 to the grant call but created the grant; a retry said "already granted". The earlier zones 403 came from the missing grant.
+  - 29 import blocks: 3 groups, 6 apps, 6 app group assignments, 1 zone, password/global session/authentication policies with 5 rules, authorization server with scope, claim, policy, rule. **Deviation from the session prompt:** users (9) and group memberships are not imported. They are personal data, and proof point 1 keeps PII out of Git; the snapshot sends them to Azure Blob. Run 2: decide whether the client inventory wants users in state at all.
+  - First generate-config plan: 29 to import, 2 to change, 1 second. Normalized into one file per object type and one per app (app plus its group assignments), references instead of IDs, nulls removed. **Shortcut:** files in the root module, not child modules; run 2 moves them into modules (needs `moved` blocks).
+  - Import-only apply into local state (no-op 29, read-only identity, so it cannot write to Okta). `terraform plan -detailed-exitcode` then exit 0, "No changes." Run 1 definition of done item 1 met.
+  - Generator errors and diffs:
+
+    | Object | Generated | Fix |
+    |---|---|---|
+    | 4 custom SAML apps | `preconfigured_app = "integrator-2631921_<app>_1"` (internal app name, as if OIN) | Removed; no diff |
+    | All SAML apps | `app_links_json` keyed by the org-specific app name | Removed; no diff |
+    | All objects | Literal IDs for groups, zone, policies, auth server, OIDC client | Replaced with references |
+    | Most objects | Dozens of `= null` arguments | Removed |
+    | `iac-oidc-portal` | `client_basic_secret` and `client_basic_secret_wo` lines marked sensitive (null) | Removed |
+    | `iac-oidc-portal` | `omit_secret`, `refresh_token_leeway`, `refresh_token_rotation`, `skip_authentication_policy` null; plan sets defaults whether stated or not; `skip_authentication_policy` conflicts with `authentication_policy` | `lifecycle.ignore_changes` on the four |
+    | Catch-all rule of `iac-authn-saml-apps` | `network_connection = null`; plan sets `ANYWHERE` whether stated or not (API returns `conditions: null` for system rules) | `lifecycle.ignore_changes = [network_connection]` |
+    | Policy rule `constraints` | Escaped JSON strings | `jsonencode()` |
+    | Slack (OIN) | No noise in plan with `preconfigured_app = "slack"`, `app_settings_json` domain | None needed; the predicted `okta_app_saml` drift did not appear on 7.0.0 |
+
+  - Apps not mapped to `iac-authn-saml-apps` (Slack, OIDC) use the built-in default authentication policy `rst188pzg3iEP5uGh698`, kept as a literal in `local.default_app_signon_policy_id` because built-ins are not imported.
+- Time taken: about 40 minutes for the session. Normalization minutes per app, Claude-assisted (model writes, plan checks): it-tools 1 (pattern set here), custserv-desk under 0.5, finance-ledger under 0.5 (both copied from it-tools), hr-portal 0.5, Slack 0.3, OIDC 1 (two plan rounds). Shared objects about 1. These are not human estimates: the client number needs a person reviewing and owning each file; time that in run 2.
+- Evidence: plan output "Plan: 29 to import, 0 to add, 0 to change, 0 to destroy", apply "29 imported", then `plan -detailed-exitcode` exit 0; `terraform state list` 29 entries; `okta-inventory/*.tf`.
+- Change to the client plan, if any: Budget normalization per app type, not per app: the first app of each type takes the time, the rest are near copies. Expect `ignore_changes` for import-default artifacts on OAuth apps and for system catch-all rules. Add `okta.networkZones.read` to the inventory scope list.
+- Accepted risks added, if any: Local `terraform.tfstate` (git-ignored) holds app and policy settings until it moves to Azure Storage in the next session.
