@@ -53,7 +53,7 @@ Each lab phase ends with a findings entry (`Run 1, Lab Phase N`) and an update t
 - Seed with the script (dry run, then `--apply`), then the smoke test from the seed spec.
 - `iac-okta-reader` per the production target design in CLAUDE.md; register row at creation. Private key to `~/.okta-lab/` and to a GitHub environment secret.
 - Import, generate-config, normalize; time each app.
-- **Pulled forward from Lab Phase 3,** because the snapshot workflow needs state: resource group `rg-iac-lab`, storage account `stiaclabtfstate` (versioning, soft delete), containers `tfstate-nonprod` and `tfstate-prod`; app registration `iac-reader` with a federated credential for `repo:iac-migration-lab/okta-to-entra-migration-factory:ref:refs/heads/main` and Storage Blob Data Contributor on the state container (it writes the `okta-inventory` state; "reader" refers to Okta). Register rows for both.
+- **Pulled forward from Lab Phase 3,** because the snapshot workflow needs state: resource group `rg-iac-lab`, storage account `stiaclabtfstate02` (`stiaclabtfstate` and `-01` were taken; versioning, soft delete), containers `tfstate-nonprod` and `tfstate-prod`; app registration `iac-reader` with a federated credential for `repo:iac-migration-lab@336396784/okta-to-entra-migration-factory@1399352055:ref:refs/heads/main` and Storage Blob Data Contributor on the state container (it writes the `okta-inventory` state; "reader" refers to Okta). Register rows for both.
 - `snapshot.yml`, then one induced drift.
 - Exit: snapshot green two nights; drift caught once; per-app normalization minutes and the wrong-attribute list logged.
 

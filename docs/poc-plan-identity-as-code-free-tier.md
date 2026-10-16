@@ -83,7 +83,7 @@ Each phase ends with exit criteria and a findings entry. Keep one running `findi
 
 ### Phase 3: Repository and pipeline, Step 3 (two evenings)
 
-- Create `iac-reader`, `iac-planner`, `iac-applier` app registrations with federated credentials. Subjects: `repo:<org>/okta-to-entra-migration-factory:pull_request` for planner, `repo:<org>/okta-to-entra-migration-factory:environment:nonprod` and `:environment:prod` for applier.
+- Create `iac-reader`, `iac-planner`, `iac-applier` app registrations with federated credentials. Subjects: `repo:<org>@<org-id>/okta-to-entra-migration-factory@<repo-id>:pull_request` (immutable subject format; read the prefix from `gh api repos/<repo>/actions/oidc/customization/sub`) for planner, `repo:<org>@<org-id>/okta-to-entra-migration-factory@<repo-id>:environment:nonprod` and `:environment:prod` for applier.
 - Graph application permissions for the lab scope (CA + apps + groups): reader `Directory.Read.All`, `Policy.Read.All`; planner same as reader; applier `Application.ReadWrite.All`, `Group.ReadWrite.All`, `Policy.ReadWrite.ConditionalAccess`, `Application.Read.All` (the CA 403 fix). Grant admin consent once, from the break-glass account.
 - Azure Storage backend: one storage account, containers `tfstate-nonprod` and `tfstate-prod`, separate keys per layer (`legacy`, `platform`, `waves`). RBAC per section 3.
 - GitHub environments `nonprod` (no gate) and `prod` (required reviewer = a second GitHub account you control, so requester-is-not-author is enforced for real).
