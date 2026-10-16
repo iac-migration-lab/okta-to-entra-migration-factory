@@ -1,5 +1,5 @@
 Current run: 1 (Implementation Phase 0)
-Current lab phase: 1
+Current lab phase: 2 (Lab Phase 1 exit pending: two green nightly snapshots)
 
 # Findings Log
 
