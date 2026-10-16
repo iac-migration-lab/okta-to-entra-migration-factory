@@ -348,3 +348,35 @@ Current phase set to 1 at the top of this log.
 - Evidence: Graph `subscribedSkus` shows `AAD_PREMIUM_P2` Enabled, 100 units.
 - Change to the client plan, if any: Start Entra trials from the Entra admin center (Licenses → Try/Buy) as a work account in the target tenant, not from Microsoft 365 Marketplace checkout. Use a clean browser profile with one signed-in identity for every commerce step.
 - Accepted risks added, if any: The `LAAdvisory247` P2 subscription stays live until the owner cancels it.
+
+## 2026-10-16, Run 1, Lab Phase 2, brownfield imported, plan clean
+- What the docs said: Session 4 steps 2 to 4: break-glass credentials, security defaults off, brownfield objects by hand in the portal (every CA policy excludes `bg-ca-exclusion` and the owner), then `entra/legacy/` with azuread `~> 3.9`, `tenant_key` and `tenant_id` variables, backend key `entra/legacy/terraform.tfstate`, `prevent_destroy`, one import block per object, plan until zero changes.
+- What actually happened:
+  - Owner enrolled `bg-admin-01` credentials, turned security defaults off, and built 9 objects in the portal: 3 CA policies, 1 named location, 1 authentication strength, 2 security groups, 1 gallery app (Zoom: application + service principal).
+  - Read-back found these differences from the click path:
+
+    | Object | Click path | Built | Action |
+    |---|---|---|---|
+    | `LAB-CA01` | Users: Global Administrator role | All users | Kept as found; the name and scope disagree (realistic brownfield) |
+    | `LAB-CA02` | All resources; exclusions | Target apps `None`; **no break-glass or owner exclusion** | Fixed by CLI (`PATCH` via Graph): All apps, both exclusions |
+    | `LAB-CA03` | Exclusions | **No break-glass or owner exclusion** | Fixed by CLI, both exclusions |
+    | Authentication strength | `iac-legacy-as-authenticator-or-fido2` | `iac-authenticator-or-fido2` | Kept as found |
+
+  - The Azure CLI token (scopes include `Directory.AccessAsUser.All`, not `Policy.Read.All`) reads CA policies and named locations but gets 403 on authentication strengths. Workaround: a local certificate on `iac-reader` plus Graph `Directory.Read.All` and `Policy.Read.All`, pulled forward from Lab Phase 3 (register #17 to #19).
+  - Versions: Terraform 1.16.4, hashicorp/azuread 3.10.0 (exact pin, satisfies `~> 3.9`).
+  - Import ID formats in azuread 3.x: CA policies `/identity/conditionalAccess/policies/<id>`, named locations `/identity/conditionalAccess/namedLocations/<id>`, authentication strengths `/policies/authenticationStrengthPolicies/<id>`, groups `/groups/<id>`, apps `/applications/<object id>`, service principals `/servicePrincipals/<id>`. Bare GUIDs fail for CA and named locations.
+  - `-generate-config-out` output that would not validate, and the fixes:
+
+    | Generated | Problem | Fix |
+    |---|---|---|
+    | `included_user_actions = []` next to `included_applications` | "only one of" error | Removed |
+    | Application `tags = []` and `feature_tags {}` | Conflict | Kept neither (defaults) |
+    | Service principal `tags` and `feature_tags` | Conflict | Kept `feature_tags { enterprise = true }` |
+    | CA `excluded_locations` as a reference to `azuread_named_location.id` | Plan showed an update: CA stores the bare GUID, the resource ID is a Graph path | `basename(...)` |
+    | Many empty lists and `null` attributes | Noise | Removed; plan still clean |
+
+  - The 9 imports were written to state with an apply of a saved plan whose only actions were `no-op` imports (local apply, bootstrap). Then `terraform plan -detailed-exitcode`: "No changes".
+- Time taken: about 50 minutes after the owner's clicks (read-back, credential workaround, normalize, two plan rounds).
+- Evidence: Graph read-back of all CA policies (exclusions present on all three); `terraform plan` "No changes"; state blob `tfstate-prod/entra/legacy/terraform.tfstate`.
+- Change to the client plan, if any: Read every hand-built or inherited CA policy back for the break-glass exclusion before import; two of three portal-built policies missed it. The CLI user token cannot read authentication strengths; plan as an app with `Policy.Read.All` from the start. Expect the Graph path vs. bare GUID mismatch for CA location references.
+- Accepted risks added, if any: `iac-reader` has a local certificate (60 days) until `plan.yml` exists. `LAB-CA01` applies MFA to all users, not admins only.

@@ -7,9 +7,9 @@ Status legend: **Draft** (not run yet), **Run 1** (worked once), **Proven** (wor
 ## 1. Prerequisites
 | Step | Status | Notes |
 |---|---|---|
-| Source org reachable, admin with MFA (multi-factor authentication) | Draft | |
-| Target tenant with break-glass account and `bg-ca-exclusion` group | Draft | |
-| Entra ID P1/P2 licensing for CA (Conditional Access) | Draft | Lab uses the P2 trial |
+| Source org reachable, admin with MFA (multi-factor authentication) | Run 1 | Okta Integrator Free org; read via `iac-okta-reader` |
+| Target tenant with break-glass account and `bg-ca-exclusion` group | Run 1 | `bg-admin-01`, group `bg-ca-exclusion` (register #14, #15). Read every hand-built CA policy back for the exclusion: two of three missed it (findings 2026-10-16 "brownfield imported, plan clean") |
+| Entra ID P1/P2 licensing for CA (Conditional Access) | Run 1 | P2 trial 2026-10-16 to 2026-11-16. Start it from Entra admin center → Licenses → Try/Buy as a work account in the tenant, not Microsoft 365 checkout |
 | GitHub repo, environments `nonprod` and `prod`, reviewers | Draft | Public repo needed on the free plan |
 | Tool versions pinned | Run 1 | docs/tool-install.md |
 
@@ -20,7 +20,7 @@ See docs/permission-register.md. Production column is the target.
 | State key | Location | Holds | Who can read / write |
 |---|---|---|---|
 | `okta-inventory` | `stiaclabtfstate02/tfstate-prod/okta-inventory/terraform.tfstate` (westus3; versioning, 7-day soft delete, Entra ID auth only) | Okta groups, apps, app group assignments, zone, policies and rules, authorization server. No users or memberships (they go to Blob `okta-exports`) | Write: `iac-reader` (GitHub environment `okta-read`), owner for break-fix (register #8, #10) |
-| `legacy` | `tfstate-prod/entra/legacy/terraform.tfstate` (planned) | Brownfield Entra objects | TBD |
+| `legacy` | `stiaclabtfstate02/tfstate-prod/entra/legacy/terraform.tfstate` | 3 CA policies, 1 named location, 1 authentication strength, 2 groups, 1 gallery app (application + service principal); all `prevent_destroy` | Write: `iac-reader` (run 1 local certificate, register #17; Lab Phase 3: `iac-applier`), owner for break-fix |
 | `platform` | TBD | Shared Entra objects | TBD |
 | `waves/<wave>` | TBD | One wave's apps | TBD |
 

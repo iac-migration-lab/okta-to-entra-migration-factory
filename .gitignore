@@ -7,6 +7,8 @@
 *.tfstate.*
 *.tfvars
 !*.auto.tfvars.example
+# per-tenant IDs only (no secrets), selected by tenant_key
+!entra/**/tenants/*.tfvars
 .terraform/
 .terraform.lock.hcl
 crash.log
