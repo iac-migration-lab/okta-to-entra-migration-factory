@@ -32,6 +32,12 @@ locals {
     includeBasicClaimSet = true
     claims = [
       {
+        # Without this the NameID is a pairwise persistent ID; Okta sent the username as emailAddress.
+        "@odata.type"  = "#microsoft.graph.samlNameIdClaim"
+        nameIdFormat   = "emailAddress"
+        configurations = [{ attribute = { "@odata.type" = "#microsoft.graph.sourcedAttribute", id = "userprincipalname", source = "user", isExtensionAttribute = false } }]
+      },
+      {
         "@odata.type" = "#microsoft.graph.customClaim"
         name          = "department"
         tokenFormat   = ["saml"]
