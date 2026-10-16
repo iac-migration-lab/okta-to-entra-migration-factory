@@ -30,7 +30,7 @@ Nothing is deleted. Deferred items are marked in docs/build-phases.md and can be
 | Okta seed | docs/okta-seed-spec.md, `okta-inventory/seed/seed-okta-org.sh`; run 1 uses the SSWS token `iac-run1-seed` (permission register #4, revoke at end of run 1) |
 | SAML test SP (service provider) | `https://sptest.iamshowcase.com` (ACS `https://sptest.iamshowcase.com/acs`, audience `IAMShowcase`) |
 | OIDC tester | `https://oidcdebugger.com/debug` (UNVERIFIED: still running) |
-| Entra lab tenant | `IaC Migration Lab`, `lamigrationlaboutlook.onmicrosoft.com`, tenant ID `bed5d4c3-98f0-4c73-9e4c-0b6cd3b9a0a4`, P2 trial not active |
+| Entra lab tenant | `IaC Migration Lab`, `lamigrationlaboutlook.onmicrosoft.com`, tenant ID `bed5d4c3-98f0-4c73-9e4c-0b6cd3b9a0a4`, P2 trial active 2026-10-16 to 2026-11-16 |
 | Azure subscription | `Azure subscription 1`, `6ea51c80-90de-4914-bbc6-2af9b54bba9f`, $10 monthly budget alert |
 | GitHub | org `iac-migration-lab`, repo `okta-to-entra-migration-factory` (renamed from `identity-as-code-lab` 2026-10-15), public, `main` |
 | Local clone | `~/Projects/okta-to-entra-migration`, tools in `lab-tools/` (git-ignored), local secrets in `~/.okta-lab/` |

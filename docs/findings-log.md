@@ -335,3 +335,16 @@ Current phase set to 1 at the top of this log.
 - Change to the client plan, if any: Licensing is a prerequisite with its own lead time: the purchasing identity must be a work account in the target tenant with billing-account rights, and the agreement must be accepted before any trial. Never start a trial from a personal Microsoft account. Check existing paid add-ons (support plans) at tenant intake.
 - Accepted risks added, if any: Two paid-converting P2 subscriptions may exist if the lab-tenant trial succeeds before the `LAAdvisory247` one is cancelled. `iac-lab-admin` and `bg-admin-01` are permanent Global Administrators with no CA yet (security defaults only).
 - Next session: retry the MCA acceptance (try a different browser, or the Azure portal as `la-migration-lab@outlook.com`: Cost Management + Billing → billing account → Billing profiles → Add); if it still fails, open a Microsoft billing support request with the error code. Then enroll `bg-admin-01` credentials, turn off security defaults, and continue Lab Phase 2 step 2.
+
+## 2026-10-16, Run 1, Lab Phase 2, P2 trial active in the lab tenant
+- What the docs said: docs/build-phases.md Lab Phase 2 step 1: activate the trial and log the date; Lab Phases 2, 3, 4 must finish before it ends.
+- What actually happened:
+  - The MCA acceptance failed again in Safari ("Try refreshing the page", error code `c51f7be9-cc4a-45ca-9dd7-2c90601691c3`).
+  - In a fresh Chrome profile, signed in only as `iac-lab-admin`, the Entra admin center route worked: Billing → Licenses → All products → + Try/Buy → Microsoft Entra ID P2 → Free trial → Activate. No billing profile or agreement step.
+  - Graph `GET /directory/subscriptions`: `AAD_PREMIUM_P2`, `isTrial: true`, 100 licenses, created **2026-10-16**, next lifecycle **2026-11-16**. Lab Phases 2 to 4 must finish by 2026-11-15.
+  - UNVERIFIED: whether this trial converts to paid at the end; the Entra route took no payment method.
+  - Graph security defaults policy read is forbidden with the Azure CLI token (scope missing); toggling it is a portal step.
+- Time taken: about 20 minutes.
+- Evidence: Graph `subscribedSkus` shows `AAD_PREMIUM_P2` Enabled, 100 units.
+- Change to the client plan, if any: Start Entra trials from the Entra admin center (Licenses → Try/Buy) as a work account in the target tenant, not from Microsoft 365 Marketplace checkout. Use a clean browser profile with one signed-in identity for every commerce step.
+- Accepted risks added, if any: The `LAAdvisory247` P2 subscription stays live until the owner cancels it.
