@@ -380,3 +380,28 @@ Current phase set to 1 at the top of this log.
 - Evidence: Graph read-back of all CA policies (exclusions present on all three); `terraform plan` "No changes"; state blob `tfstate-prod/entra/legacy/terraform.tfstate`.
 - Change to the client plan, if any: Read every hand-built or inherited CA policy back for the break-glass exclusion before import; two of three portal-built policies missed it. The CLI user token cannot read authentication strengths; plan as an app with `Policy.Read.All` from the start. Expect the Graph path vs. bare GUID mismatch for CA location references.
 - Accepted risks added, if any: `iac-reader` has a local certificate (60 days) until `plan.yml` exists. `LAB-CA01` applies MFA to all users, not admins only.
+
+## 2026-10-16, Run 1, Lab Phase 2, apps translated into wave-00 (sign-in test pending)
+- What the docs said: Session 5 steps 1 and 3: four SAML apps (it-tools through `azuread_application_from_template`, three custom), group assignment, signing certificate, ACS `https://sptest.iamshowcase.com/acs`; OIDC app with redirect `https://oidcdebugger.com/debug` and a `department` claim; Okta zone as a named location and the Okta authentication policy as one report-only CA policy in `entra/platform/`. Expect the shared audience `IAMShowcase` to collide.
+- What actually happened:
+  - **Platform** (local apply, CLI login): groups `iac-it`, `iac-custserv`, `iac-finance`; named location `iac-nl-okta-office` (same range as legacy `iac-legacy-nl-office`).
+  - **Test users by CLI** (stand-in for HR or SailPoint provisioning, out of run 1 scope): `ada.reyes` (IT), `cara.lind` (IT, CustServ), `gus.tanaka` (Finance) at `lamigrationlaboutlook.onmicrosoft.com`, with department, job title, employee ID; one generated password in `~/.okta-lab/entra-test-users.initial-password`. Okta logins use `iaclab.example`, which cannot be a UPN suffix (unverified domain), so the NameID value changes on migration.
+  - **CA translation moved from platform to wave-00:** the policy targets the wave's apps and the waves read platform groups, so putting it in platform makes a cycle. `LAB-CA10` (Finance, require MFA, the 4 SAML apps, report-only, both exclusions). Okta rules `office-zone` and catch-all (password only) need no CA policy.
+  - **Wave-00 needed six local applies.** Each problem and the fix:
+
+    | Problem | Cause | Fix |
+    |---|---|---|
+    | `InvalidUniqueTenantIdentifierAsPerAppPolicy` on `IAMShowcase` (stored as `urn:spn:IAMShowcase`); `HostNameNotOnVerifiedDomain` on `https://sptest.iamshowcase.com/...` | Default app management policy: identifiers must contain a verified domain, tenant ID or app ID, except on SAML apps (`excludeSaml: true`) | Switch the service principal to `saml` first, then add the identifier as its own resource (`azuread_application_identifier_uri`, `depends_on` the SP) |
+    | Shared audience | Identifiers unique per tenant | `IAMShowcase` on custserv-desk only; the other three use `https://sptest.iamshowcase.com/<app>` |
+    | Template roles deleted | `azuread_application` with `template_id` removes the template's `User` and `msiam_access` roles when config declares none; one assignment then failed "Permission being assigned was not found" | Declare the `User` role (`18d14569-c3bd-439b-9a66-3a2aee01d14f`, same ID in every non-gallery app); delete the untracked assignment by CLI |
+    | "Provider produced inconsistent result" on an assignment | Replication delay | Re-apply |
+    | Signing certificate created but not active | azuread 3.10.0 has no `preferredTokenSigningKeyThumbprint` | `msgraph_update_resource` PATCH on each SP (new gap-list item) |
+    | msgraph `customClaimsPolicy`: PATCH 404, PUT 404 (update resource reads first), then 400 "Expected property 'name'" | No policy exists on a new SP; attribute must be `sourcedAttribute` with `id` | Body tested by CLI PUT; then `msgraph_resource_action` PUT creates, `msgraph_update_resource` tracks |
+    | First `azuread_application_from_template` attempt: 404 on its own new object | Replication delay; left an orphan app | Orphan deleted by CLI; re-apply |
+
+  - After the fixes: `terraform plan` "No changes" for platform and wave-00. Graph read-back: 4 SAML SPs in `saml` mode with an active key, identifiers as above, assignments IT/CustServ/Finance as in Okta, hr-portal has `iac-cmp-hr-portal`.
+  - Versions: Terraform 1.16.4, hashicorp/azuread 3.10.0, microsoft/msgraph 0.5.0.
+- Time taken: about 70 minutes, mostly Graph behavior.
+- Evidence: commit `5c4096e`; Graph read-back above.
+- Change to the client plan, if any: In a SAML app module, order is template → SP `saml` → identifier → signing cert → activate key (msgraph) → assignments, and declare the template roles. Okta apps sharing one audience must be split before migration; the SP side must accept a new entity ID. Add `preferredTokenSigningKeyThumbprint` and `customClaimsPolicy` creation to the msgraph gap list. Budget for replication retries in the pipeline.
+- Accepted risks added, if any: Test users and their membership are CLI-managed. Six local applies before the pipeline exists.
