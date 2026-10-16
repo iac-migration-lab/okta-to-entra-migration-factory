@@ -217,3 +217,18 @@ Current phase set to 1 at the top of this log.
 - Evidence: this commit.
 - Change to the client plan, if any: Production permissions come from the register's "Production should use" column, not from the lab.
 - Accepted risks added, if any: Lab identities may hold broader grants than production would allow; each is listed in the register.
+
+## 2026-10-15, Run 1, Lab Phase 1, Run 1 scope adopted; second repo not used
+- What the docs said: docs/run-1-scope.md (decided 2026-10-05, written 2026-10-07) narrows run 1. Before it, run 1 meant all of Lab Phases 1 to 8.
+- What actually happened: Scope adopted. CLAUDE.md now lists docs/run-1-scope.md first under "Read first, every session". docs/build-phases.md headings mark Lab Phases 5, 6, 7 deferred and note Lab Phase 8 runs as Lab Phase 5 in run 1; step text unchanged.
+  - Three proof points: (1) Okta discovery as code, read-only (import, generate-config, normalize, nightly snapshot, drift, no PII (personally identifiable information) in Git); (2) Entra write path as code (brownfield import with zero diff, Okta SAML and OIDC apps translated into working Entra apps); (3) CI/CD between the two (plan, policy, change gate, nonprod on merge, prod behind a reviewer, federated credentials, drift issue, one wave and one rollback).
+  - Deferred: SailPoint stand-in (Lab Phase 5), msgraph gap layer (Lab Phase 6; the Lab Phase 2 claims experiment still tries msgraph on one app), Microsoft365DSC snapshot (Lab Phase 7), multi-tenant Entra model. Nothing deleted; run 2 or 3 can pick them up.
+  - Second repo: `mlencioni/okta-to-entra-migration-factory` (private, personal account, created 2026-10-05) is not used. On the GitHub Free plan a private repo has no required reviewers and no environment secrets, so it cannot carry the `prod` gate or per-environment federated-credential subjects (see 2026-10-01 "Private GitHub repo created"). Checked today: it still exists (PRIVATE). Owner deletes it.
+  - Stray local folder `~/okta-entra-migration` (duplicate Lab Phase 0 run on 2026-10-05, two commits, no remote): still present today. Owner deletes it; nothing in it is needed.
+  - Multi-tenant hook: every Entra root module takes `tenant_key` (`lab` in run 1) and `tenant_id` and reads nothing else about the tenant; state keys and workflow matrix entries come from `tenant_key`; CA (Conditional Access) names follow `<TENANT>-CA<NN> - <Apps> - <Control> - <Persona> - <Conditions>`. A new tenant becomes a map entry plus a federated credential.
+  - Revisit trigger (run-1-scope.md section 7): run 2 replaces every "Not OK" permission-register row with the production-shaped grant; run 3 must be production-shaped end to end, or the runbook says why not.
+  - Added `.claude/` (Claude Code local settings) to .gitignore.
+- Time taken: about 10 minutes.
+- Evidence: this commit; `gh repo view mlencioni/okta-to-entra-migration-factory` returned PRIVATE; `ls -d ~/okta-entra-migration` found the folder.
+- Change to the client plan, if any: Client build sequencing can treat SailPoint, the msgraph gap layer, and DSC (Desired State Configuration) as later increments; the multi-tenant variables are in from the first module.
+- Accepted risks added, if any: None new; the section 7 list in docs/run-1-scope.md stands.

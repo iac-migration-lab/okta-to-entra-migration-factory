@@ -21,3 +21,5 @@ claude/
 *.docx
 # local tool binaries (587 MB), see docs/tool-install.md
 lab-tools/
+# Claude Code local settings
+.claude/

@@ -11,6 +11,7 @@ Personal proof of concept of an Okta-to-Microsoft Entra ID migration run "as cod
 - **Environments are throwaway:** personal free accounts, dummy data only, nothing to do with any client.
 
 ## Read first, every session
+- docs/run-1-scope.md: narrows run 1 to three proof points (Okta discovery as code, Entra write path as code, CI/CD between the two) and defers Lab Phases 5, 6, 7.
 - docs/findings-log.md: current run and lab phase at the top; what has actually happened. Append, never rewrite.
 - docs/build-phases.md: step-by-step run book per lab phase.
 - docs/permission-register.md: every grant made so far.

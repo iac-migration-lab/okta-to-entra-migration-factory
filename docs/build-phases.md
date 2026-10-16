@@ -118,7 +118,7 @@ Both apps on Entra; Okta assignments removed; rollback drill timed and logged.
 
 ---
 
-## Phase 5: SailPoint stand-in (one evening)
+## Phase 5: SailPoint stand-in (one evening). Deferred (run 1), see docs/run-1-scope.md
 
 Goal: prove the SP-Config pipeline shape against a mock, and say plainly what it does not prove.
 
@@ -133,7 +133,7 @@ Pipeline green against the mock. Findings log lists what only a real tenant can 
 
 ---
 
-## Phase 6: Gap layer with the msgraph provider (one evening)
+## Phase 6: Gap layer with the msgraph provider (one evening). Deferred (run 1), see docs/run-1-scope.md
 
 Goal: manage one object the azuread provider cannot, and record how it behaves.
 
@@ -147,7 +147,7 @@ One gap object managed; drift behavior recorded.
 
 ---
 
-## Phase 7: Microsoft365DSC read-only snapshot (one evening)
+## Phase 7: Microsoft365DSC read-only snapshot (one evening). Deferred (run 1), see docs/run-1-scope.md
 
 Goal: a second, independent view of drift.
 
@@ -161,6 +161,8 @@ A DSC (Desired State Configuration) snapshot diff that agrees with the Terraform
 ---
 
 ## Phase 8: Retrospective and teardown (one evening)
+
+Run 1: this lab phase runs as Lab Phase 5 (docs/run-1-scope.md section 4).
 
 Goal: carry the evidence into the client plan and leave nothing running.
 
