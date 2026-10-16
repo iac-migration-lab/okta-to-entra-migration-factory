@@ -121,6 +121,8 @@ if [[ -z "$ZONE_ID" ]]; then
 else echo "SKIP  zone exists" >&2; fi
 
 # ---------- 3. Password policy (before users, so passwords meet it) ----------
+# Identity Engine: send the full recovery block (as the Default Policy has it). Omitting recovery_question
+# fails validation (security question authenticator disabled); a partial block returned HTTP 500 (run 1).
 PWD_ID=$(find_id "/api/v1/policies?type=PASSWORD" ".[] | select(.name==\"iac-pwd-staff\")")
 if [[ -z "$PWD_ID" ]]; then
   PWD_ID=$(write POST /api/v1/policies "$(jq -cn --argjson g "$ALL_GROUPS" '{
@@ -130,7 +132,10 @@ if [[ -z "$PWD_ID" ]]; then
       complexity:{minLength:12,minLowerCase:1,minUpperCase:1,minNumber:1,minSymbol:0,excludeUsername:true},
       age:{maxAgeDays:0,expireWarnDays:0,minAgeMinutes:0,historyCount:4},
       lockout:{maxAttempts:10,autoUnlockMinutes:0,showLockoutFailures:false}},
-      recovery:{factors:{okta_email:{status:"ACTIVE"}}}}}')" "policy iac-pwd-staff" | jq -r .id)
+      recovery:{factors:{
+        recovery_question:{status:"INACTIVE",properties:{complexity:{minLength:4}}},
+        okta_email:{status:"ACTIVE",properties:{recoveryToken:{tokenLifetimeMinutes:60}}},
+        okta_sms:{status:"INACTIVE"},okta_call:{status:"INACTIVE"}}}}}')" "policy iac-pwd-staff" | jq -r .id)
   write POST "/api/v1/policies/$PWD_ID/rules" '{"type":"PASSWORD","name":"iac-pwd-staff-rule","conditions":{"people":{"users":{"exclude":[]}},"network":{"connection":"ANYWHERE"}},"actions":{"passwordChange":{"access":"ALLOW"},"selfServicePasswordReset":{"access":"ALLOW","requirement":{"primary":{"methods":["email"]},"stepUp":{"required":false}}},"selfServiceUnlock":{"access":"DENY"}}}' "rule iac-pwd-staff-rule" >/dev/null
 else echo "SKIP  password policy exists" >&2; fi
 
@@ -144,10 +149,14 @@ if [[ -z "$GSP_ID" ]]; then
 else echo "SKIP  global session policy exists" >&2; fi
 
 # ---------- 5. Users ----------
-if [[ $APPLY -eq 1 ]]; then
-  read -r -s -p "Shared password for the 9 seeded users (min 14 chars, upper, lower, digit): " SEED_PW; echo >&2
-  [[ ${#SEED_PW} -ge 14 ]] || { echo "Too short." >&2; exit 1; }
-else SEED_PW="dry-run-not-used"; fi
+SEED_PW=""
+need_pw() {
+  [[ -n "$SEED_PW" ]] && return
+  if [[ $APPLY -eq 1 ]]; then
+    read -r -s -p "Shared password for the 9 seeded users (min 14 chars, upper, lower, digit): " SEED_PW; echo >&2
+    [[ ${#SEED_PW} -ge 14 ]] || { echo "Too short." >&2; exit 1; }
+  else SEED_PW="dry-run-not-used"; fi
+}
 
 # first|last|title|department|employeeNumber|costCenter|managerLogin|groups(csv of IT,CS,FIN)
 USERS='Ada|Reyes|IT Manager|IT|1001|CC-100||IT
@@ -165,6 +174,7 @@ while IFS='|' read -r first last title dept empno cc mgr grps; do
   login="$handle@$LOGIN_DOMAIN"
   api GET "/api/v1/users/$login" >/dev/null
   if [[ "$(code)" == 200 ]]; then echo "SKIP  user $login exists" >&2; continue; fi
+  need_pw
   gids="[]"
   for g in ${grps//,/ }; do
     case $g in IT) id=$GID_IT;; CS) id=$GID_CS;; FIN) id=$GID_FIN;; esac
@@ -253,19 +263,28 @@ if [[ -z "$AUTHN_ID" ]]; then
     name:"office-zone", type:"ACCESS_POLICY", priority:2,
     conditions:{network:{connection:"ZONE",include:[$z]}},
     actions:{appSignOn:{access:"ALLOW",verificationMethod:{type:"ASSURANCE",factorMode:"1FA",reauthenticateIn:"PT2H",constraints:[{knowledge:{types:["password"]}}]}}}}')" "rule office-zone" >/dev/null
-  # Catch-all: password only. UNVERIFIED that the API lets this rule's actions be edited.
-  if [[ $APPLY -eq 1 ]]; then
-    CATCH=$(api GET "/api/v1/policies/$AUTHN_ID/rules" | jq -c '[.[] | select(.system==true)][0] // empty')
-    if [[ -n "$CATCH" ]]; then
-      CATCH_ID=$(echo "$CATCH" | jq -r .id)
-      write PUT "/api/v1/policies/$AUTHN_ID/rules/$CATCH_ID" "$(echo "$CATCH" | jq -c '{name,type,priority,conditions,
-        actions:{appSignOn:{access:"ALLOW",verificationMethod:{type:"ASSURANCE",factorMode:"1FA",reauthenticateIn:"PT2H",constraints:[{knowledge:{types:["password"]}}]}}}}')" "rule catch-all -> password" >/dev/null
-    fi
-  else echo "PLAN  PUT catch-all rule -> password only" >&2; fi
 else echo "SKIP  authentication policy exists" >&2; fi
+# Catch-all: password only. Okta rejects the PUT (E0000077) unless it sends system:true, priority 99 and conditions:null unchanged.
+if [[ $APPLY -eq 1 ]]; then
+  CATCH=$(api GET "/api/v1/policies/$AUTHN_ID/rules" | jq -c '[.[] | select(.system==true)][0] // empty')
+  if [[ -n "$CATCH" ]]; then
+    CATCH_ID=$(echo "$CATCH" | jq -r .id)
+    write PUT "/api/v1/policies/$AUTHN_ID/rules/$CATCH_ID" "$(echo "$CATCH" | jq -c '{name,type,priority,system,conditions,
+      actions:{appSignOn:{access:"ALLOW",verificationMethod:{type:"ASSURANCE",factorMode:"1FA",reauthenticateIn:"PT2H",constraints:[{knowledge:{types:["password"]}}]}}}}')" "rule catch-all -> password" >/dev/null
+  fi
+else echo "PLAN  PUT catch-all rule -> password only" >&2; fi
 for a in "$APP_IT" "$APP_CS" "$APP_FIN" "$APP_HR"; do
   write PUT "/api/v1/apps/$a/policies/$AUTHN_ID" '' "map authn policy -> $a" >/dev/null
 done
+
+# Built-in Okta Dashboard policy: its catch-all asks for 2FA, and seeded users have no second factor
+# (Okta Verify enrollment is itself challenged), so sign-in fails with ENROLL. Lab: password only.
+DASH_ID=$(find_id "/api/v1/policies?type=ACCESS_POLICY" ".[] | select(.name==\"Okta Dashboard\")")
+if [[ $APPLY -eq 1 && -n "$DASH_ID" ]]; then
+  DCATCH=$(api GET "/api/v1/policies/$DASH_ID/rules" | jq -c '[.[] | select(.system==true)][0] // empty')
+  [[ -n "$DCATCH" ]] && write PUT "/api/v1/policies/$DASH_ID/rules/$(echo "$DCATCH" | jq -r .id)" "$(echo "$DCATCH" | jq -c '{name,type,priority,system,conditions,
+    actions:{appSignOn:{access:"ALLOW",verificationMethod:{type:"ASSURANCE",factorMode:"1FA",reauthenticateIn:"PT12H",constraints:[{knowledge:{types:["password"]}}]}}}}')" "rule Okta Dashboard catch-all -> password" >/dev/null
+else echo "PLAN  PUT Okta Dashboard catch-all rule -> password only" >&2; fi
 
 # ---------- 8. Custom authorization server ----------
 AS_ID=$(find_id "/api/v1/authorizationServers?q=iac-authz-api" ".[] | select(.name==\"iac-authz-api\")")

@@ -240,3 +240,36 @@ Current phase set to 1 at the top of this log.
 - Evidence: `gh repo view iac-migration-lab/okta-to-entra-migration-factory` returned PUBLIC, default branch `main`; `git fetch` against the new origin succeeded.
 - Change to the client plan, if any: Fix the repo name before creating any federated credential; a later rename means re-creating every subject.
 - Accepted risks added, if any: GitHub redirects the old URL until a new repo takes the old name; the local clone folder keeps its old name (`~/Projects/okta-to-entra-migration`).
+
+## 2026-10-16, Run 1, Lab Phase 1, Okta org seeded; reader identity created
+- What the docs said: docs/okta-seed-spec.md: seed with `okta-inventory/seed/seed-okta-org.sh` (dry run, then `--apply`) using SSWS token `iac-run1-seed`, smoke test as Ada, then create `iac-okta-reader` (API Services, private key JWT, seven read scopes, Read-only Administrator) per docs/build-phases.md Lab Phase 1 step 2.
+- What actually happened:
+  - Token file: `~/.okta-lab/ssws-token` (register #4) did not exist; the token had been saved as `~/.okta-lab/iac-okta-seeder.pem`, which at first held a pasted shell command. Owner fixed the contents; Claude renamed it to `ssws-token` (600) without reading it.
+  - First dry run failed: a multi-line paste split `export` from its variables (fix: one command per line). The stray `export` printed the owner's environment, which included an unrelated work API key; owner advised to rotate it. Nothing from it went into the repo.
+  - Dry run clean (45 planned writes). Apply: 42 OK, 3 failed.
+    - `iac-pwd-staff`: Identity Engine rejected the policy because the security question authenticator is disabled (`Api validation failed: mediationPolicy`); a partial recovery block then returned HTTP 500. Fixed by sending the full recovery block as the Default Policy has it (`recovery_question` INACTIVE with properties, `okta_email` ACTIVE). Its rule failed only because the policy did not exist.
+    - Catch-all rule of `iac-authn-saml-apps`: HTTP 403 E0000077 "conditions read-only", with conditions omitted or `{}`. Accepted only with `system: true`, `priority: 99`, `conditions: null`. Default catch-all was phishing-resistant 2FA; now password only per the spec.
+    - Claude created the password policy and its rule and fixed the catch-all directly with the SSWS token (local API calls, logged here), then updated the script so a dry run reports 0 failures.
+  - Smoke test, first attempt: 403 at the Admin Console (wrong URL, `-admin`). Second: "Unable to sign in"; system log showed `ENROLL` on the built-in Okta Dashboard policy, whose catch-all required 2FA while the only second factor (Okta Verify) cannot be enrolled by a new user. Claude set the Okta Dashboard catch-all to password only (local API call; added to the seed script). This is a change to a built-in policy the inventory will import.
+  - Seeded passwords did not match 1Password (the hidden prompt got a multi-paste). Ada recovered by email self-service reset (proves `iac-pwd-staff-rule`); new `okta-inventory/seed/reset-seed-passwords.sh` (password asked twice, must match) set the other 7 active users; `passwordChanged` confirmed for all 7.
+  - Smoke test results: Ada: sign-in pass; `iac-saml-it-tools` NameID pass; `iac-saml-hr-portal` attributes `department`, `title`, `employeeNumber`, `groups` pass. Cara (IT + CustServ): sign-in pass, SAML apps pass. `iac-oidc-portal` has no dashboard tile: an OIDC app with no `initiate_login_uri` (login mode DISABLED) is hidden by design; OIDC sign-in is tested via oidcdebugger in Lab Phase 2.
+  - Unverified items resolved: Okta accepts `.example` logins and plus-addressed emails; the OIN Slack app created with name `slack` and `settings.app.domain`.
+  - `iac-okta-reader` created with the SSWS token via API: app ID / client ID `0oa18siafpuScaofm698`, key ID `iac-okta-reader-2026-10-16` (RSA 2048, generated on the owner's Mac; private key in `~/.okta-lab/iac-okta-reader.pem` and 1Password; Claude read only the public key). Seven scopes granted, Read-only Administrator assigned. Register row #5.
+  - Read check as `iac-okta-reader` (`okta-inventory/verify-reader.sh`, no SSWS), compared with the seed spec:
+
+    | Object | Seen by reader | Expected |
+    |---|---|---|
+    | Users | 9 ACTIVE (8 seeded + admin), 1 DEPROVISIONED | 8 + 1 + admin |
+    | Groups | IT, CustServ, Finance (5 total with built-ins) | 3 custom |
+    | Apps | 6 seeded + `iac-okta-reader` (7 total) | 6 |
+    | Network zones | HTTP 403 | 1 custom |
+    | Password / global session / authentication policies | `iac-pwd-staff`, `iac-gsp-staff`, `iac-authn-saml-apps` (+ built-ins) | 1 each |
+    | Authorization servers | `default`, `iac-authz-api` | 1 + default |
+    | Identity providers | 0 | 0 |
+    | Write (create group) | HTTP 403 | refused |
+
+  - The reader's app list is 7, while the SSWS token sees 13: Okta's built-in apps (Admin Console, Dashboard, Workflows and others) are not returned to the OAuth reader.
+- Time taken: seeding 22:06:45 to about 22:22 MDT on 2026-10-15 (about 15 minutes, including the two fixes). Smoke test troubleshooting and password reset about 40 minutes. Reader identity and read check about 15 minutes.
+- Evidence: seed script output (owner session); Okta system log events `policy.evaluate_sign_on` ENROLL and `app.generic.unauth_app_access_attempt` (2026-10-16 06:42 to 07:07 UTC); users API `passwordChanged` 07:20:46 to 07:20:48 UTC; `verify-reader.sh` output above.
+- Change to the client plan, if any: (1) Inventory scopes must include `okta.networkZones.read`; the build-phases list of seven does not, and zones return 403. (2) Built-in Okta apps are invisible to the read-only OAuth identity; decide whether the inventory needs them. (3) Brownfield import will see admin-modified built-in policies (Okta Dashboard catch-all); expect that in the client org too. (4) New users without an enrolled factor cannot pass a 2FA catch-all; the client migration needs a first-factor enrollment path.
+- Accepted risks added, if any: Okta Dashboard sign-in is password only in the lab org.
