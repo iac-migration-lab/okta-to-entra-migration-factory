@@ -88,7 +88,7 @@ Three apps signing in through Entra; claims findings written up with screenshots
 Goal: pull request to plan to policy check to change gate to apply, with no stored Entra secrets.
 
 ### Steps
-1. **App registrations** `iac-reader`, `iac-planner`, `iac-applier` with federated credentials. Subjects: `repo:iac-migration-lab/identity-as-code-lab:pull_request` (planner), `...:environment:nonprod` and `...:environment:prod` (applier). No client secrets.
+1. **App registrations** `iac-reader`, `iac-planner`, `iac-applier` with federated credentials. Subjects: `repo:iac-migration-lab/okta-to-entra-migration-factory:pull_request` (planner), `...:environment:nonprod` and `...:environment:prod` (applier). No client secrets.
 2. **Graph application permissions** (least-privilege block first; admin consent only from the break-glass account): reader and planner `Directory.Read.All`, `Policy.Read.All`; applier `Application.ReadWrite.All`, `Group.ReadWrite.All`, `Policy.ReadWrite.ConditionalAccess`, `Application.Read.All`.
 3. **State backend:** storage account `stiaclabtfstate` in `rg-iac-lab`, containers `tfstate-nonprod` and `tfstate-prod`, one key per layer (`legacy`, `platform`, `waves`). Versioning and soft delete on. `iac-applier` gets Storage Blob Data Contributor on the state container only; `iac-reader` gets Storage Blob Data Reader. Import the hand-made budget alert here or recreate it in code.
 4. **GitHub environments:** `nonprod` (no gate) and `prod` (required reviewer: second account `iac-lab-reviewer`, so requester and approver differ).

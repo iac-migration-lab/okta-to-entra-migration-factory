@@ -4,7 +4,7 @@ Resume note written at the end of Phase 0 (2026-10-01). Read this, then docs/bui
 
 ## Where things stand
 - Phase 0 closed; `Current phase: 1` in docs/findings-log.md.
-- Repo: https://github.com/iac-migration-lab/identity-as-code-lab (public, `main`).
+- Repo: https://github.com/iac-migration-lab/okta-to-entra-migration-factory (public, `main`).
 - Okta: `integrator-2631921`, Admin Console https://integrator-2631921-admin.okta.com (sign in as `mark@lencioni.io`).
 - Entra / Azure: tenant `IaC Migration Lab` (`lamigrationlaboutlook.onmicrosoft.com`), subscription `Azure subscription 1`, sign in as `la-migration-lab@outlook.com` in a private window. P2 trial NOT active; do not activate it in Phase 1.
 - Budget alert: $10 monthly, emails the Outlook address.

@@ -56,7 +56,7 @@ Each phase ends with exit criteria and a findings entry. Keep one running `findi
 
 ### Phase 0: Accounts and skeleton (one evening)
 
-- Create lab email, GitHub org and public repo (`identity-as-code-lab`), Okta Integrator Free Plan org, Entra tenant, Azure free account. (ServiceNow PDI dropped 2026-10-01; see findings log.)
+- Create lab email, GitHub org and public repo (`okta-to-entra-migration-factory`, created as `identity-as-code-lab`, renamed 2026-10-15), Okta Integrator Free Plan org, Entra tenant, Azure free account. (ServiceNow PDI dropped 2026-10-01; see findings log.)
 - Do NOT activate the Entra P2 trial yet. Its clock should start at Phase 2.
 - Install locally: Terraform CE (pinned, 1.11 or later for write-only arguments), Azure CLI, Okta CLI optional, SailPoint CLI, PowerShell 7 + Microsoft365DSC, Conftest, Node (for Prism).
 - Repo layout: `okta-inventory/`, `entra/legacy/`, `entra/platform/`, `entra/waves/`, `sailpoint/`, `policy/`, `.github/workflows/`, `docs/`.
@@ -83,7 +83,7 @@ Each phase ends with exit criteria and a findings entry. Keep one running `findi
 
 ### Phase 3: Repository and pipeline, Step 3 (two evenings)
 
-- Create `iac-reader`, `iac-planner`, `iac-applier` app registrations with federated credentials. Subjects: `repo:<org>/identity-as-code-lab:pull_request` for planner, `repo:<org>/identity-as-code-lab:environment:nonprod` and `:environment:prod` for applier.
+- Create `iac-reader`, `iac-planner`, `iac-applier` app registrations with federated credentials. Subjects: `repo:<org>/okta-to-entra-migration-factory:pull_request` for planner, `repo:<org>/okta-to-entra-migration-factory:environment:nonprod` and `:environment:prod` for applier.
 - Graph application permissions for the lab scope (CA + apps + groups): reader `Directory.Read.All`, `Policy.Read.All`; planner same as reader; applier `Application.ReadWrite.All`, `Group.ReadWrite.All`, `Policy.ReadWrite.ConditionalAccess`, `Application.Read.All` (the CA 403 fix). Grant admin consent once, from the break-glass account.
 - Azure Storage backend: one storage account, containers `tfstate-nonprod` and `tfstate-prod`, separate keys per layer (`legacy`, `platform`, `waves`). RBAC per section 3.
 - GitHub environments `nonprod` (no gate) and `prod` (required reviewer = a second GitHub account you control, so requester-is-not-author is enforced for real).

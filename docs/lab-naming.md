@@ -5,7 +5,7 @@ Prefix `iac` (Infrastructure as Code) everywhere. Dashes where the platform allo
 | Object | Name | Notes |
 |---|---|---|
 | GitHub org | `iac-migration-lab` | Must be globally unique; if taken, append `-01`. Free plan, public. |
-| GitHub repo | `identity-as-code-lab` | Fixed by the plan. Public (needed for free environment gates). |
+| GitHub repo | `okta-to-entra-migration-factory` | Renamed from `identity-as-code-lab` 2026-10-15, before any federated-credential subject existed. Public (needed for free environment gates). |
 | Lab email | `la-migration-lab@outlook.com` | Created 2026-10-01. Personal Microsoft account (Outlook.com), used for every lab sign-up. Not on `lencioni.io`: that domain belongs to the owner's company Microsoft 365 tenant. Does not follow the `iac` prefix; kept as created. |
 | GitHub second reviewer account | `iac-lab-reviewer` | Personal GitHub account for the `prod` required-reviewer gate (Phase 3). |
 | Entra tenant display name | `IaC Migration Lab` | Display only; rename from `Default Directory` in the portal (Entra ID > Overview > Properties). |

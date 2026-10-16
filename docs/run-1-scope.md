@@ -32,7 +32,7 @@ Nothing is deleted. Deferred items are marked in docs/build-phases.md and can be
 | OIDC tester | `https://oidcdebugger.com/debug` (UNVERIFIED: still running) |
 | Entra lab tenant | `IaC Migration Lab`, `lamigrationlaboutlook.onmicrosoft.com`, tenant ID `bed5d4c3-98f0-4c73-9e4c-0b6cd3b9a0a4`, P2 trial not active |
 | Azure subscription | `Azure subscription 1`, `6ea51c80-90de-4914-bbc6-2af9b54bba9f`, $10 monthly budget alert |
-| GitHub | org `iac-migration-lab`, repo `identity-as-code-lab`, public, `main` |
+| GitHub | org `iac-migration-lab`, repo `okta-to-entra-migration-factory` (renamed from `identity-as-code-lab` 2026-10-15), public, `main` |
 | Local clone | `~/Projects/okta-to-entra-migration`, tools in `lab-tools/` (git-ignored), local secrets in `~/.okta-lab/` |
 | Break-glass (Lab Phase 2) | `bg-admin-01@lamigrationlaboutlook.onmicrosoft.com`, group `bg-ca-exclusion` |
 | Entra pipeline identities | `iac-reader`, `iac-planner`, `iac-applier` |
@@ -42,7 +42,7 @@ Passwords and keys live in 1Password and `~/.okta-lab/` only.
 
 ### Repo decision (2026-10-05)
 - `mlencioni/okta-to-entra-migration-factory` (private, personal account, created 2026-10-05) is **not used**. On the Free plan a private repo has no required reviewers and no environment secrets, which removes the `prod` gate and the per-environment federated-credential subjects run 1 exists to prove (findings entry 2026-10-01 "Private GitHub repo created"). Owner deletes it.
-- Run 1 stays in `iac-migration-lab/identity-as-code-lab`. If the "migration factory" name is wanted, rename this repo in place (`gh repo rename okta-to-entra-migration-factory`); history, settings, and public visibility carry over. Do it before Lab Phase 3 creates federated-credential subjects, which contain the repo name.
+- Run 1 stays in the lab org repo, renamed in place on 2026-10-15 from `identity-as-code-lab` to `iac-migration-lab/okta-to-entra-migration-factory` (`gh repo rename`); history, settings, and public visibility carried over. Done before any federated-credential subject, which contains the repo name, existed.
 - Stray local folder `~/okta-entra-migration` (duplicate Lab Phase 0 run on 2026-10-05, two commits, no remote): delete.
 
 ## 4. Lab phases in run 1
@@ -53,7 +53,7 @@ Each lab phase ends with a findings entry (`Run 1, Lab Phase N`) and an update t
 - Seed with the script (dry run, then `--apply`), then the smoke test from the seed spec.
 - `iac-okta-reader` per the production target design in CLAUDE.md; register row at creation. Private key to `~/.okta-lab/` and to a GitHub environment secret.
 - Import, generate-config, normalize; time each app.
-- **Pulled forward from Lab Phase 3,** because the snapshot workflow needs state: resource group `rg-iac-lab`, storage account `stiaclabtfstate` (versioning, soft delete), containers `tfstate-nonprod` and `tfstate-prod`; app registration `iac-reader` with a federated credential for `repo:iac-migration-lab/identity-as-code-lab:ref:refs/heads/main` and Storage Blob Data Contributor on the state container (it writes the `okta-inventory` state; "reader" refers to Okta). Register rows for both.
+- **Pulled forward from Lab Phase 3,** because the snapshot workflow needs state: resource group `rg-iac-lab`, storage account `stiaclabtfstate` (versioning, soft delete), containers `tfstate-nonprod` and `tfstate-prod`; app registration `iac-reader` with a federated credential for `repo:iac-migration-lab/okta-to-entra-migration-factory:ref:refs/heads/main` and Storage Blob Data Contributor on the state container (it writes the `okta-inventory` state; "reader" refers to Okta). Register rows for both.
 - `snapshot.yml`, then one induced drift.
 - Exit: snapshot green two nights; drift caught once; per-app normalization minutes and the wrong-attribute list logged.
 

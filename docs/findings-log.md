@@ -232,3 +232,11 @@ Current phase set to 1 at the top of this log.
 - Evidence: this commit; `gh repo view mlencioni/okta-to-entra-migration-factory` returned PRIVATE; `ls -d ~/okta-entra-migration` found the folder.
 - Change to the client plan, if any: Client build sequencing can treat SailPoint, the msgraph gap layer, and DSC (Desired State Configuration) as later increments; the multi-tenant variables are in from the first module.
 - Accepted risks added, if any: None new; the section 7 list in docs/run-1-scope.md stands.
+
+## 2026-10-15, Run 1, Lab Phase 1, Repo renamed to okta-to-entra-migration-factory
+- What the docs said: docs/run-1-scope.md section 3: if the "migration factory" name is wanted, rename this repo in place before Lab Phase 3 creates federated-credential subjects, which contain the repo name.
+- What actually happened: Owner chose to rename now. Claude ran `gh repo rename okta-to-entra-migration-factory -R iac-migration-lab/identity-as-code-lab --yes` and set `origin` to https://github.com/iac-migration-lab/okta-to-entra-migration-factory.git. No federated credential or app registration exists yet, so nothing in Entra needed changing. Updated forward-looking docs: run-1-scope.md, lab-naming.md, claude-code-prompts.md, start-phase-1.md, poc-plan-identity-as-code-free-tier.md, build-phases.md (Lab Phase 3 subjects). Left as-run history unchanged: earlier findings entries and the Lab Phase 0 "Steps as run" in build-phases.md. The private repo `mlencioni/okta-to-entra-migration-factory` has the same name under a different owner; no conflict, owner still deletes it.
+- Time taken: under 5 minutes.
+- Evidence: `gh repo view iac-migration-lab/okta-to-entra-migration-factory` returned PUBLIC, default branch `main`; `git fetch` against the new origin succeeded.
+- Change to the client plan, if any: Fix the repo name before creating any federated credential; a later rename means re-creating every subject.
+- Accepted risks added, if any: GitHub redirects the old URL until a new repo takes the old name; the local clone folder keeps its old name (`~/Projects/okta-to-entra-migration`).
