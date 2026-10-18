@@ -1,5 +1,5 @@
 Current run: 1 (Implementation Phase 0)
-Current lab phase: 2 (Lab Phase 1 exit pending: two green nightly snapshots)
+Current lab phase: 3 (carried from Lab Phase 2: OIDC sign-in test, claims portal-edit experiment)
 
 # Findings Log
 
@@ -405,3 +405,14 @@ Current phase set to 1 at the top of this log.
 - Evidence: commit `5c4096e`; Graph read-back above.
 - Change to the client plan, if any: In a SAML app module, order is template → SP `saml` → identifier → signing cert → activate key (msgraph) → assignments, and declare the template roles. Okta apps sharing one audience must be split before migration; the SP side must accept a new entity ID. Add `preferredTokenSigningKeyThumbprint` and `customClaimsPolicy` creation to the msgraph gap list. Budget for replication retries in the pipeline.
 - Accepted risks added, if any: Test users and their membership are CLI-managed. Six local applies before the pipeline exists.
+
+## 2026-10-18, Run 1, Lab Phase 3, Lab Phase 1 exit met; Lab Phase 3 started
+- What the docs said: Lab Phase 1 exit: snapshot green two nights running, drift caught once. Lab Phase 2 exit: SAML and OIDC sign-in through Entra, claims findings with screenshots, plan clean.
+- What actually happened:
+  - Nightly snapshot green on 2026-10-16 (run 38911874452), 2026-10-17 (run 39034636595) and 2026-10-18 (run 39130819708), after the induced drift was reverted. Lab Phase 1 exit met; run 1 definition of done items 2 and 3 met.
+  - Lab Phase 2: SAML sign-in proven with screenshots (`docs/evidence/2026-10-16-saml-*.png`, commit `3408754`); platform and wave-00 plans clean. Not yet done, carried into Lab Phase 3 so the pipeline work can start: OIDC sign-in through oidcdebugger, and the claims experiment step where the owner edits each app's claims in the portal and the plan is recorded.
+  - Header set to Lab Phase 3.
+- Time taken: under 5 minutes.
+- Evidence: `gh run list --workflow snapshot.yml`.
+- Change to the client plan, if any: None.
+- Accepted risks added, if any: None.
