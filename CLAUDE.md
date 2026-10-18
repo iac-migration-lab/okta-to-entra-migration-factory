@@ -16,6 +16,10 @@ Personal proof of concept of an Okta-to-Microsoft Entra ID migration run "as cod
 - docs/build-phases.md: step-by-step run book per lab phase.
 - docs/permission-register.md: every grant made so far.
 - docs/poc-plan-identity-as-code-free-tier.md and docs/terraform-provider-analysis-okta-entra-sailpoint.md as needed.
+- docs/iac-glossary.md for plain-language term definitions.
+
+## Keep README.md current
+README.md is the step-by-step guide for a layperson. Update it in the same commit whenever a lab phase or session changes status, steps, names, versions, commands, or lessons learned: the Status line, the step markers in section 6, section 7 lessons, and the "Last updated" line.
 
 ## Hard rules (still absolute)
 - Never reference or configure the owner's company Microsoft 365 tenant (`lencioni.io`), company SharePoint, any production GitHub organization, or any client environment. Never connect the lab Okta org to `lencioni.io`. If a step would, stop and say so.
@@ -52,7 +56,8 @@ entra/waves/      per-wave app migrations
 sailpoint/        SP-Config JSON and the mock-server pipeline
 policy/           Conftest (OPA, Open Policy Agent) rules
 .github/workflows/  snapshot, plan, apply, drift, change-gate
-docs/             plan, analysis, findings-log, permission register, migration runbook, retro
+docs/             plan, analysis, findings-log, permission register, migration runbook, glossary, retro
+README.md         layperson's step-by-step guide; keep current
 
 ## Commands
 source lab-tools/env.sh                             # pinned tools on PATH
