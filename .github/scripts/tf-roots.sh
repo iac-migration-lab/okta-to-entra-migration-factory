@@ -35,7 +35,7 @@ plan_root() { # $1 root; sets code
 for root in "${roots[@]}"; do
   name=${root//\//-}
   echo "::group::$root ($tk)"
-  terraform -chdir="$root" init -input=false -no-color -reconfigure -backend-config="container_name=$container" > "$out/$name.init.txt" 2>&1 \
+  terraform -chdir="$root" init -input=false -no-color -reconfigure -lock=$lock -backend-config="container_name=$container" > "$out/$name.init.txt" 2>&1 \
     || { cat "$out/$name.init.txt"; summary "| \`$root\` | init failed | | ❌ |"; failed=1; echo "::endgroup::"; continue; }
   terraform -chdir="$root" validate -no-color || { summary "| \`$root\` | validate failed | | ❌ |"; failed=1; echo "::endgroup::"; continue; }
 

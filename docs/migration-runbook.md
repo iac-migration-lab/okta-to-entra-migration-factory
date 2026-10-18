@@ -10,19 +10,33 @@ Status legend: **Draft** (not run yet), **Run 1** (worked once), **Proven** (wor
 | Source org reachable, admin with MFA (multi-factor authentication) | Run 1 | Okta Integrator Free org; read via `iac-okta-reader` |
 | Target tenant with break-glass account and `bg-ca-exclusion` group | Run 1 | `bg-admin-01`, group `bg-ca-exclusion` (register #14, #15). Read every hand-built CA policy back for the exclusion: two of three missed it (findings 2026-10-16 "brownfield imported, plan clean") |
 | Entra ID P1/P2 licensing for CA (Conditional Access) | Run 1 | P2 trial 2026-10-16 to 2026-11-16. Start it from Entra admin center → Licenses → Try/Buy as a work account in the tenant, not Microsoft 365 checkout |
-| GitHub repo, environments `nonprod` and `prod`, reviewers | Draft | Public repo needed on the free plan |
+| GitHub repo, environments `nonprod` and `prod`, reviewers | Run 1 | Public repo on the free plan; `prod` has a required reviewer, self-review blocked, branch policy `main` (findings 2026-10-18 Lab Phase 3) |
 | Tool versions pinned | Run 1 | docs/tool-install.md |
 
 ## 2. Identities and permissions
 See docs/permission-register.md. Production column is the target.
+
+| Identity | Signs in from | Federated subject (suffix after the repo prefix) | Can do |
+|---|---|---|---|
+| `iac-okta-reader` (Okta) | `snapshot.yml`, environment `okta-read` | n/a (private key JWT, key in environment secret) | Read Okta |
+| `iac-reader` | `snapshot.yml` (`environment:okta-read`), `drift.yml` (`ref:refs/heads/main`) | two credentials | Read Entra, write Okta inventory state |
+| `iac-planner` | `plan.yml` | `pull_request` | Read Entra, read state |
+| `iac-applier` | `apply.yml`, environments `nonprod` and `prod` | `environment:nonprod`, `environment:prod` | Change apps, groups, CA, claims, assignments; write state |
+
+Before creating any federated credential, read the subject prefix: `gh api repos/<repo>/actions/oidc/customization/sub`.
 
 ## 3. Terraform state
 | State key | Location | Holds | Who can read / write |
 |---|---|---|---|
 | `okta-inventory` | `stiaclabtfstate02/tfstate-prod/okta-inventory/terraform.tfstate` (westus3; versioning, 7-day soft delete, Entra ID auth only) | Okta groups, apps, app group assignments, zone, policies and rules, authorization server. No users or memberships (they go to Blob `okta-exports`) | Write: `iac-reader` (GitHub environment `okta-read`), owner for break-fix (register #8, #10) |
 | `legacy` | `stiaclabtfstate02/tfstate-prod/entra/legacy/terraform.tfstate` | 3 CA policies, 1 named location, 1 authentication strength, 2 groups, 1 gallery app (application + service principal); all `prevent_destroy` | Write: `iac-reader` (run 1 local certificate, register #17; Lab Phase 3: `iac-applier`), owner for break-fix |
-| `platform` | TBD | Shared Entra objects | TBD |
-| `waves/<wave>` | TBD | One wave's apps | TBD |
+| `platform` (prod) | `tfstate-prod/entra/platform/terraform.tfstate` | 3 staff groups, 1 named location (`iac-*`) | Write: `iac-applier` (environment `prod`); read: `iac-planner`, `iac-reader` |
+| `platform` (nonprod) | `tfstate-nonprod/entra/platform/terraform.tfstate` | Same, `iac-np-*` copy | Write: `iac-applier` (environment `nonprod`); read: `iac-planner` |
+| `waves/wave-00` (prod) | `tfstate-prod/entra/waves/wave-00/terraform.tfstate` | 4 SAML apps, OIDC app, claims, `LAB-CA10` | As platform (prod) |
+| `waves/wave-00` (nonprod) | `tfstate-nonprod/entra/waves/wave-00/terraform.tfstate` | Same, `iac-np-*` and `LAB-NP-CA10` | As platform (nonprod) |
+| `azure/bootstrap` | `tfstate-prod/azure/bootstrap/terraform.tfstate` | Budget `budget-iac-lab-monthly` | Owner only, local apply (pipeline identities hold no subscription roles) |
+
+The backend files name `tfstate-prod`; nonprod overrides it at init (`-backend-config=container_name=tfstate-nonprod`, `.github/scripts/tf-roots.sh`).
 
 ## 4. Inventory (source)
 | Step | Status | Notes |
