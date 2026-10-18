@@ -4,7 +4,7 @@ Move applications from **Okta** to **Microsoft Entra ID** "as code": every app, 
 
 This repo is a working proof of concept, built on free accounts with dummy data. It is also a step-by-step guide you can follow to run the same migration on your own lab, and later adapt to a real environment.
 
-> **Status (updated 2026-10-18):** Run 1, Lab Phase 2. Okta discovery and the nightly snapshot work. The existing Entra setup is imported with zero changes. Four SAML apps and one OIDC app are translated into Entra and sign in. Next up: the pipeline (Lab Phase 3), then a cutover wave with rollback (Lab Phase 4). Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
+> **Status (updated 2026-10-18):** Run 1, Lab Phase 3 in progress. Done: Okta discovery and nightly snapshot (green three nights), Entra brownfield import, 4 SAML apps and 1 OIDC app translated, and the pipeline built (plan, policy rules, change gate, apply, drift). The first pull request plans green. Next: merge it so nonprod builds through the pipeline, then the Lab Phase 3 exit tests. Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
 
 > **Lab only.** Personal free accounts, fictional users, nothing to do with any company or client. Do not point this repo at a production tenant without reading [Adapting this to your own environment](#adapting-this-to-your-own-environment).
 
@@ -141,9 +141,10 @@ Run 1 took roughly: Lab Phase 0 one evening, Lab Phase 1 two evenings, Lab Phase
 | `entra/legacy/` | Entra objects that already existed (built by hand), imported as is. Every resource has `prevent_destroy`, so Terraform refuses to delete them. |
 | `entra/platform/` | New shared Entra objects: groups (one per Okta group) and named locations. |
 | `entra/waves/wave-00/` | The first batch of migrated apps: 4 SAML apps, 1 OIDC app, their claims, and a report-only CA policy. |
-| `policy/` | Conftest rules (written in Rego, the OPA (Open Policy Agent) language) that reject unsafe plans. Planned for Lab Phase 3. |
+| `policy/` | Conftest rules (written in Rego, the OPA (Open Policy Agent) language) that reject unsafe plans, plus test fixtures and `test.sh`. |
+| `azure/bootstrap/` | Azure objects the pipeline depends on (budget), applied locally by the owner only. |
 | `sailpoint/` | SailPoint provisioning-as-code stand-in. Deferred in run 1. |
-| `.github/workflows/` | Automation. `snapshot.yml` (nightly Okta drift check) exists; `plan.yml`, `apply.yml`, `drift.yml` come in Lab Phase 3. |
+| `.github/workflows/` | Automation: `snapshot.yml` (nightly Okta check), `plan.yml` (every PR), `apply.yml` (on merge), `drift.yml` (nightly Entra check), `change-gate.yml` (shared). Helper scripts are in `.github/scripts/`. |
 | `docs/` | The plan, run book, findings log, permission register, glossary, and evidence screenshots. See [section 10](#10-where-to-find-more). |
 | `lab-tools/` | Local copies of the pinned tools. Git-ignored; you create it in Step 0.2. |
 
@@ -157,6 +158,7 @@ Each step says **what you do**, **what it proves**, and its **status** in run 1:
 
 - ✅ Done in run 1 (evidence in the findings log)
 - 🔜 Planned, not run yet
+- 🚧 In progress
 - ⏸️ Deferred to run 2 or 3
 
 The detailed run book is [docs/build-phases.md](docs/build-phases.md). The run 1 scope is [docs/run-1-scope.md](docs/run-1-scope.md).
@@ -294,7 +296,7 @@ CA policy names follow `<TENANT>-CA<NN> - <Apps> - <Control> - <Persona> - <Cond
 
 ---
 
-### Lab Phase 3: Build the pipeline (Step 3, Controlled write path) 🔜
+### Lab Phase 3: Build the pipeline (Step 3, Controlled write path) 🚧 in progress
 
 From here on, Entra changes happen **only** through pull requests.
 
@@ -308,7 +310,11 @@ From here on, Entra changes happen **only** through pull requests.
 
 Graph permissions: reader and planner `Directory.Read.All`, `Policy.Read.All`; applier `Application.ReadWrite.All`, `Group.ReadWrite.All`, `Policy.ReadWrite.ConditionalAccess`. Admin consent from the break-glass account only.
 
-**3.2 GitHub environments:** `nonprod` (no gate) and `prod` (required reviewer: the second GitHub account).
+**3.2 GitHub environments:** `nonprod` (no gate) and `prod` (required reviewer: the second GitHub account; self-review blocked; `main` only).
+
+**3.2a Nonprod with only one tenant.** A free account gets one Entra tenant, so `nonprod` is a prefixed copy in the same tenant: `tenant_key = "lab-np"` builds `iac-np-*` objects and `LAB-NP-CA*` policies with state in `tfstate-nonprod`. Prod (`lab`) keeps the `iac-*` names. With two tenants, `lab-np.tfvars` would just carry the other tenant ID.
+
+**3.2b Create each new state file once with a writer.** The read-only planner cannot create a state file. For a new root or tenant_key, run `terraform init` once with an identity that can write the container.
 
 **3.3 Change gate.** Every PR body includes a line like `Change: github:12` pointing to a GitHub Issue that stands in for a change ticket. The gate fails unless the issue is labeled `change:scheduled` or `change:implement` and the current time is inside its window. Design: [docs/change-gate-design.md](docs/change-gate-design.md). A real ServiceNow or Jira plugs in as an adapter.
 
@@ -317,7 +323,9 @@ Graph permissions: reader and planner `Directory.Read.All`, `Policy.Read.All`; a
 - Every new CA policy starts in report-only.
 - Nothing in `entra/legacy/` may be destroyed.
 
-**3.5 Workflows:** `plan.yml` (on every PR), `apply.yml` (on merge: nonprod, then prod after approval), `drift.yml` (nightly; opens an issue on drift).
+**3.5 Workflows:** `plan.yml` (on every PR), `apply.yml` (on merge: nonprod, then prod after approval), `drift.yml` (nightly; opens an issue on drift). They share `.github/scripts/tf-roots.sh` (every root in order, Conftest on each plan) and `.github/scripts/change-gate.sh`. Every PR starts from `.github/pull_request_template.md`, which holds the `Change: github:<issue>` line.
+
+**3.6 Branch protection on `main`:** require the checks `policy-selftest`, `change-gate / check`, `plan (lab-np)`, `plan (lab)`.
 
 **Exit tests:** a rule-breaking PR fails; a PR without a change ticket fails; a compliant PR applies to nonprod on merge and to prod only after approval; one induced drift opens exactly one issue.
 
@@ -357,7 +365,7 @@ The biggest surprises from run 1. Full details and evidence in [docs/findings-lo
 | Area | What happened | What to do |
 |---|---|---|
 | Okta sign-up | Rejected Outlook.com address | Use a domain you control, not tied to any production Microsoft tenant |
-| Azure | Free account is Pay-As-You-Go, no spending cap | Budget alert on day one |
+| Azure | Free account is Pay-As-You-Go, no spending cap | Budget alert on day one (now in code: `azure/bootstrap/`) |
 | Entra tenant | Could not create a second plain workforce tenant | Use the sign-up Default Directory as the lab tenant |
 | ServiceNow | Developer instances unavailable | Change gate built to work with any ticket system; GitHub Issues in the lab |
 | GitHub | Private free repos lack environment reviewers and secrets | Public repo in a free org; never commit secrets |
@@ -371,6 +379,8 @@ The biggest surprises from run 1. Full details and evidence in [docs/findings-lo
 | Template roles | Declaring an app from a template without roles deleted the template's `User` role | Declare the `User` role in code |
 | Signing keys | azuread 3.10.0 cannot activate the SAML signing certificate | Use msgraph `preferredTokenSigningKeyThumbprint` |
 | Replication | Entra sometimes 404s on objects it just created | Re-run the apply; budget for retries in the pipeline |
+| Pipeline state | Read-only planner got 403 "failed to lock" on a state file that did not exist yet | Create each new state file once with a writer identity |
+| Applier permissions | SAML apps with claims and group assignments need more than the four permissions in the plan | Add `Policy.ReadWrite.ApplicationConfiguration`, `AppRoleAssignment.ReadWrite.All`, `Directory.Read.All` |
 | NameID | Okta used `@iaclab.example` logins, which cannot be Entra user names | The user identifier sent to apps changes on migration; tell app owners |
 
 ---
@@ -435,4 +445,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-18 (Run 1, Lab Phase 2)._
+_Last updated: 2026-10-18 (Run 1, Lab Phase 3 in progress)._
