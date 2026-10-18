@@ -1,9 +1,9 @@
 # Staff groups from entra/platform; break-glass objects from CLI bootstrap (register #14, #15).
 data "azuread_group" "staff" {
   for_each = {
-    it       = "iac-it"
-    custserv = "iac-custserv"
-    finance  = "iac-finance"
+    it       = "${var.name_prefix}-it"
+    custserv = "${var.name_prefix}-custserv"
+    finance  = "${var.name_prefix}-finance"
   }
   display_name     = each.value
   security_enabled = true

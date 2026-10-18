@@ -1,0 +1,22 @@
+{
+  "format_version": "1.2",
+  "resource_changes": [
+    {
+      "address": "azuread_conditional_access_policy.good",
+      "type": "azuread_conditional_access_policy",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "display_name": "LAB-CA99 - Test - Require MFA - All - Any location",
+          "state": "enabledForReportingButNotEnforced",
+          "conditions": [{"users": [{"excluded_groups": ["21008cb0-56d6-4fc4-9f1c-9e20dc1d5620"]}]}]
+        }
+      }
+    },
+    {
+      "address": "azuread_group.kept",
+      "type": "azuread_group",
+      "change": {"actions": ["update"], "after": {"display_name": "iac-legacy-finance-users"}}
+    }
+  ]
+}

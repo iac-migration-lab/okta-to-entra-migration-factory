@@ -10,4 +10,4 @@ Per-wave app migrations, one state key per wave (`entra/waves/<wave>/terraform.t
 | `app-oidc.tf` | `iac-oidc-portal` with a claims mapping policy for `department` |
 | `ca-policies.tf` | `LAB-CA10` (Okta authentication policy `iac-authn-saml-apps`, Finance rule), report-only |
 
-Run 1 locally: the owner's Azure CLI login. Providers: hashicorp/azuread 3.10.0, microsoft/msgraph 0.5.0 (preview).
+Two copies in the one lab tenant, selected by `tenant_key`: `lab` (prod, names `iac-*`, `LAB-CA*`, state `tfstate-prod`) and `lab-np` (nonprod, names `iac-np-*`, `LAB-NP-CA*`, state `tfstate-nonprod`). From Lab Phase 3, changes go through `plan.yml` and `apply.yml` only. Providers: hashicorp/azuread 3.10.0, microsoft/msgraph 0.5.0 (preview).

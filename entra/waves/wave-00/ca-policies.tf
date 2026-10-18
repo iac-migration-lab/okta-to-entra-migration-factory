@@ -3,7 +3,7 @@
 #   office-zone (password in iac-zone-office) and catch-all (password) -> no CA policy; password is the Entra baseline
 # New CA policies start report-only; break-glass and owner excluded (CLAUDE.md).
 resource "azuread_conditional_access_policy" "lab_ca10" {
-  display_name = "LAB-CA10 - Wave-00 SAML apps - Require MFA - Finance - Any location"
+  display_name = "${var.ca_prefix}-CA10 - Wave-00 SAML apps - Require MFA - Finance - Any location"
   state        = "enabledForReportingButNotEnforced"
 
   conditions {

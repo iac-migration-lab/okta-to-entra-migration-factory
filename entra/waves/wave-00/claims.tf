@@ -5,7 +5,7 @@
 #   finance-ledger Entra defaults
 
 resource "azuread_claims_mapping_policy" "hr_portal" {
-  display_name = "iac-cmp-hr-portal"
+  display_name = "${var.name_prefix}-cmp-hr-portal"
   definition = [jsonencode({
     ClaimsMappingPolicy = {
       Version              = 1

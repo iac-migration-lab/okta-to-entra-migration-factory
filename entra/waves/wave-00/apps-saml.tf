@@ -8,18 +8,18 @@
 locals {
   saml_apps = {
     custserv_desk = {
-      name       = "iac-saml-custserv-desk"
-      identifier = "IAMShowcase"
+      name       = "${var.name_prefix}-saml-custserv-desk"
+      identifier = var.use_shared_audience ? "IAMShowcase" : "https://sptest.iamshowcase.com/${var.name_prefix}-saml-custserv-desk"
       groups     = ["custserv"]
     }
     finance_ledger = {
-      name       = "iac-saml-finance-ledger"
-      identifier = "https://sptest.iamshowcase.com/iac-saml-finance-ledger"
+      name       = "${var.name_prefix}-saml-finance-ledger"
+      identifier = "https://sptest.iamshowcase.com/${var.name_prefix}-saml-finance-ledger"
       groups     = ["finance"]
     }
     hr_portal = {
-      name       = "iac-saml-hr-portal"
-      identifier = "https://sptest.iamshowcase.com/iac-saml-hr-portal"
+      name       = "${var.name_prefix}-saml-hr-portal"
+      identifier = "https://sptest.iamshowcase.com/${var.name_prefix}-saml-hr-portal"
       groups     = ["it", "custserv", "finance"]
     }
   }
@@ -98,13 +98,13 @@ resource "azuread_app_role_assignment" "saml" {
 
 # ... and one through azuread_application_from_template, to compare the two (build-phases step 5).
 resource "azuread_application_from_template" "it_tools" {
-  display_name = "iac-saml-it-tools"
+  display_name = "${var.name_prefix}-saml-it-tools"
   template_id  = local.non_gallery_template_id
 }
 
 resource "azuread_application_identifier_uri" "it_tools" {
   application_id = azuread_application_from_template.it_tools.application_id
-  identifier_uri = "https://sptest.iamshowcase.com/iac-saml-it-tools"
+  identifier_uri = "https://sptest.iamshowcase.com/${var.name_prefix}-saml-it-tools"
 
   depends_on = [azuread_service_principal.it_tools] # SAML mode first (see top of file)
 }
@@ -133,7 +133,7 @@ resource "azuread_service_principal" "it_tools" {
 
 resource "azuread_service_principal_token_signing_certificate" "it_tools" {
   service_principal_id = azuread_service_principal.it_tools.id
-  display_name         = "CN=iac-saml-it-tools"
+  display_name         = "CN=${var.name_prefix}-saml-it-tools"
 }
 
 resource "azuread_app_role_assignment" "it_tools" {

@@ -2,9 +2,9 @@
 # (run 1: CLI, findings 2026-10-16), so Terraform manages the group, not its members.
 locals {
   staff_groups = {
-    it       = { name = "iac-it", description = "IT staff (Okta group IT)" }
-    custserv = { name = "iac-custserv", description = "Customer service (Okta group CustServ)" }
-    finance  = { name = "iac-finance", description = "Finance (Okta group Finance)" }
+    it       = { name = "${var.name_prefix}-it", description = "IT staff (Okta group IT)" }
+    custserv = { name = "${var.name_prefix}-custserv", description = "Customer service (Okta group CustServ)" }
+    finance  = { name = "${var.name_prefix}-finance", description = "Finance (Okta group Finance)" }
   }
 }
 
