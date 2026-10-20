@@ -540,3 +540,11 @@ Current phase set to 1 at the top of this log.
 - Evidence: PR #9; apply run 39489110081; Graph beta `servicePrincipals/{id}/claimsPolicy` read.
 - Change to the client plan, if any: Confirms the decision: with the msgraph custom claims policy, a portal edit is seen by the plan and undone by the next apply. In production the nightly drift job should raise it first, so someone decides whether to keep it (change the code) or undo it (apply).
 - Accepted risks added, if any: None. The "it-tools claims differ from code" risk from the entry above is closed.
+
+## 2026-10-20, Run 1, Lab Phase 2 (carried), stray P2 trial in LAAdvisory247 cancelled
+- What the docs said: findings 2026-10-16: the first P2 attempt from the personal account created tenant `LAAdvisory247.onmicrosoft.com` with a P2 trial on recurring billing (ends 2026-11-15); owner to cancel before then.
+- What actually happened: Owner signed in to the Microsoft 365 admin center as `LAMigrationLab@LAAdvisory247.onmicrosoft.com` (private window) and cancelled the Microsoft Entra ID P2 subscription; status now **Disabled**. The owner's Mastercard stays on file as the payment method: the admin center will not remove the last payment method without adding another. No paid products remain in that tenant, so nothing should bill it. Claude did not touch the tenant.
+- Time taken: about 10 minutes.
+- Evidence: owner's report (no screenshot).
+- Change to the client plan, if any: A stray tenant made by a commerce flow keeps the card used at checkout; Microsoft requires a replacement before removing the last one. Use a dedicated payment card (or invoice billing) for any lab or POC (proof of concept) purchase.
+- Accepted risks added, if any: The `LAAdvisory247` P2 risk from 2026-10-16 is closed. New, small: the owner's card stays on file in `LAAdvisory247` with no active subscription. UNVERIFIED: a disabled subscription is deleted by Microsoft after a retention period, after which the tenant holds no products at all. Check the tenant's billing once after 2026-11-15.
