@@ -1,5 +1,5 @@
 Current run: 1 (Implementation Phase 0)
-Current lab phase: 3 (carried from Lab Phase 2: OIDC sign-in test, claims portal-edit experiment)
+Current lab phase: 3 (carried from Lab Phase 2: claims portal-edit experiment)
 
 # Findings Log
 
@@ -474,3 +474,16 @@ Current phase set to 1 at the top of this log.
 - Evidence: PR #7; apply run 39480801437; `az ad app list` scope check.
 - Change to the client plan, if any: None beyond the earlier entry (post-apply clean plan is now in the pipeline).
 - Accepted risks added, if any: None. The "Nonprod wave-00 holds 3 pending changes" risk from the earlier entry is closed.
+
+## 2026-10-20, Run 1, Lab Phase 2 (carried), OIDC sign-in through Entra proven
+- What the docs said: README 2.7 / build-phases Lab Phase 2: test the OIDC app with oidcdebugger. Run 1 design (`app-oidc.tf`): implicit ID token with `form_post`, no client secret in Entra; claims mapping policy adds `department`.
+- What actually happened:
+  - The owner did not know `ada.reyes`'s password and self-service reset did not work. Claude reset it by CLI as the lab admin (`az ad user update --password ... --force-change-password-next-sign-in false`), 2026-10-20 19:23 UTC; the password is only in `~/.okta-lab/ada-reyes.password` (600) and was handed over by `pbcopy` (a `pbcopy <` run by the owner left the clipboard empty; Claude's copy worked).
+  - Owner signed in from a private window through oidcdebugger to `iac-oidc-portal` (client `c3a620df-...`), authorize endpoint `https://login.microsoftonline.com/<tenant>/oauth2/v2.0/authorize`, scope `openid profile email`, response type `id_token`, mode `form_post`. Result: **Success**, state matched.
+  - ID token decoded locally (raw token not committed): `aud` = the app's client ID; `iss` = `https://login.microsoftonline.com/bed5d4c3-.../v2.0`; `ver` 2.0; `name` "Ada Reyes"; `preferred_username` `ada.reyes@lamigrationlaboutlook.onmicrosoft.com`; **`department` "IT"** (claims mapping policy works; `mapped_claims_enabled = true` avoided AADSTS50146); signed RS256 with `kid` `ryBx-65j...`, which is in the tenant's published keys. No `email` claim (the test user has no `mail` attribute).
+  - `iat` is 2 minutes before the password reset: Entra back-dates `iat`/`nbf` by 5 minutes for clock skew (lifetime 65 minutes), so not an error.
+  - Not done: the negative test (an unassigned user, e.g. `gus.tanaka`, should get AADSTS50105). Optional for run 1.
+- Time taken: about 30 minutes, most of it the password.
+- Evidence: `docs/evidence/2026-10-20-oidc-portal-success.png` (ID token expired 2026-10-20 20:26 UTC; test user, dummy data).
+- Change to the client plan, if any: (1) OIDC claims that Okta adds through an authorization server rule map to an Entra claims mapping policy plus `acceptMappedClaims` (or a custom signing key). (2) The real app redeems a code with a client credential issued at cutover; the implicit flow is only a lab test path. (3) Keep test-user passwords in a vault entry from the start, so the sign-in test does not depend on memory.
+- Accepted risks added, if any: Implicit ID token issuance is on for `iac-oidc-portal` (test path only); production apps use authorization code with PKCE (Proof Key for Code Exchange) and turn implicit off.

@@ -4,7 +4,7 @@ Move applications from **Okta** to **Microsoft Entra ID** "as code": every app, 
 
 This repo is a working proof of concept, built on free accounts with dummy data. It is also a step-by-step guide you can follow to run the same migration on your own lab, and later adapt to a real environment.
 
-> **Status (updated 2026-10-20):** Run 1, Lab Phase 3 in progress. Done: Okta discovery and nightly snapshot (green five nights), Entra brownfield import, 4 SAML apps and 1 OIDC app translated, the pipeline built, and the first pull request merged: nonprod built entirely through the pipeline (41 objects), and prod applied after approval with no changes. Lab Phase 3 exit tests 3 of 4 passed (unsafe PR blocked, PR without a change ticket blocked); the pipeline now re-plans after every apply and requires a clean plan. Next: the induced-drift test, then the OIDC sign-in and claims experiment carried from Lab Phase 2. Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
+> **Status (updated 2026-10-20):** Run 1, Lab Phase 3 in progress. Done: Okta discovery and nightly snapshot (green five nights), Entra brownfield import, 4 SAML apps and 1 OIDC app translated, the pipeline built, and the first pull request merged: nonprod built entirely through the pipeline (41 objects), and prod applied after approval with no changes. Lab Phase 3 exit tests 3 of 4 passed (unsafe PR blocked, PR without a change ticket blocked); the pipeline now re-plans after every apply and requires a clean plan. OIDC sign-in proven (carried from Lab Phase 2). Next: the induced-drift test, then the claims experiment. Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
 
 > **Lab only.** Personal free accounts, fictional users, nothing to do with any company or client. Do not point this repo at a production tenant without reading [Adapting this to your own environment](#adapting-this-to-your-own-environment).
 
@@ -290,7 +290,7 @@ cd entra/waves/wave-00 && terraform init && terraform plan -var-file=tenants/lab
 
 CA policy names follow `<TENANT>-CA<NN> - <Apps> - <Control> - <Persona> - <Conditions>`.
 
-**2.7 Test sign-in through Entra.** Assign a test user, sign in to each SAML app from My Apps (`https://myapps.microsoft.com`), and check the attributes the test site shows. Screenshots go in `docs/evidence/`. Test the OIDC app with oidcdebugger.
+**2.7 Test sign-in through Entra.** Assign a test user, sign in to each SAML app from My Apps (`https://myapps.microsoft.com`), and check the attributes the test site shows. Screenshots go in `docs/evidence/`. Test the OIDC app with oidcdebugger (run 1: ✅ 2026-10-20, ID token carries `department`; screenshot `docs/evidence/2026-10-20-oidc-portal-success.png`). Settings: authorize URI `https://login.microsoftonline.com/<tenant ID>/oauth2/v2.0/authorize`, the app's client ID, scope `openid profile email`, response type `id_token`, response mode `form_post`, in a private window.
 
 **Proves:** existing Entra objects can come under code without changes, and Okta SAML and OIDC apps can be rebuilt in Entra as code. In run 1 these were applied locally (no pipeline yet); each local apply is logged.
 

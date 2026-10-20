@@ -63,7 +63,7 @@ The backend files name `tfstate-prod`; nonprod overrides it at init (`-backend-c
 | Create Entra app registration + service principal | Draft | |
 | Recreate custom claims and scopes | Draft | |
 | Issue new client credentials to the app owner | Draft | |
-| Test sign-in | Draft | |
+| Test sign-in | Draft | Lab: oidcdebugger, implicit `id_token` + `form_post`, private window; decode the token and check `aud`, `iss`, `tid` and every mapped claim. Production: the app's own code flow. |
 
 ## 6. Cutover wave
 | Step | Status | Notes |
