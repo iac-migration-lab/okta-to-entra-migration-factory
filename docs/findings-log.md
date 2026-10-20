@@ -500,3 +500,14 @@ Current phase set to 1 at the top of this log.
 - Evidence: none (owner statement only).
 - Change to the client plan, if any: Negative tests need evidence like positive ones: capture the AADSTS code and correlation ID, or export the sign-in log row.
 - Accepted risks added, if any: The "unassigned user blocked" result for the OIDC app rests on the owner's report; the setting behind it (`app_role_assignment_required = true`, IT group only) is in code and verified by plan.
+
+## 2026-10-20, Run 1, Lab Phase 2 (carried), OIDC negative test re-run with evidence (corrects the owner-reported entry above)
+- What the docs said: Unassigned user `gus.tanaka` (Finance) gets AADSTS50105 at `iac-oidc-portal`.
+- What actually happened:
+  - The owner did not have Gus's password for the first attempt, so that "pass" may have been a password failure, not the assignment check. Claude reset Gus's password by CLI as the lab admin (19:44:38 UTC), stored in `~/.okta-lab/gus-tanaka.password` (600), handed over by `pbcopy`. Same lab-only shortcut as Ada's reset above; do not copy.
+  - Re-run from a private window through oidcdebugger: Gus authenticated, then Entra refused with **AADSTS50105**: "configured ... to block users unless they are specifically granted ('assigned') access ... not a direct member of a group with access". Request ID `410e331f-6379-4f31-8afb-df6c8db73001`, correlation ID `62797786-473e-436c-abb7-70d899851ceb`, 2026-10-20T19:45:53Z.
+  - This supersedes the owner-reported entry above: the negative test now has evidence.
+- Time taken: about 5 minutes.
+- Evidence: `docs/evidence/2026-10-20-oidc-portal-gus-unassigned.png`.
+- Change to the client plan, if any: A negative test only counts once the user gets past authentication; check the AADSTS code, not just "sign-in failed".
+- Accepted risks added, if any: None. The "rests on the owner's report" risk from the entry above is closed.
