@@ -32,6 +32,9 @@ locals {
 }
 
 # Three apps through azuread_application with template_id ...
+# Instantiating the template also adds a user_impersonation OAuth2 scope ("TERRAFORM_INSTANTIATE_<guid>") that
+# this config does not declare, so the first apply leaves a diff; the pipeline's post-apply plan applies once more
+# to remove it (.github/scripts/tf-roots.sh, findings 2026-10-20).
 resource "azuread_application" "saml" {
   for_each = local.saml_apps
 

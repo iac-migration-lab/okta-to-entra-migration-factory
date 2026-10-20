@@ -69,7 +69,7 @@ The backend files name `tfstate-prod`; nonprod overrides it at init (`-backend-c
 | Step | Status | Notes |
 |---|---|---|
 | Change record and PR (pull request) | Draft | |
-| Plan, policy check, approval, apply | Draft | |
+| Plan, policy check, approval, apply | Draft | After each apply the pipeline re-plans; a root is done only when that plan shows "No changes". One more policy-checked apply is allowed (fresh SAML apps from the non-gallery template need it); still not clean fails the job. |
 | Validation window | Draft | |
 | Remove Okta assignments | Draft | |
 

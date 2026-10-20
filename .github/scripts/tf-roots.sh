@@ -3,7 +3,8 @@
 # Usage: tf-roots.sh plan|apply|drift <tenant_key>
 #   plan   pull request: plan -lock=false, conftest; a downstream plan that fails while upstream has pending
 #          changes is reported as skipped (it reads objects the upstream apply creates)
-#   apply  after merge: plan, conftest, apply the saved plan; one retry for Entra replication delays
+#   apply  after merge: plan, conftest, apply the saved plan; one retry for Entra replication delays; then
+#          re-plan: a root is done only when that plan shows no changes (one more policy-checked apply allowed)
 #   drift  nightly: plan -lock=false; writes drift.md when any root differs
 # Roots are included when they have tenants/<tenant_key>.tfvars (entra/legacy exists for prod only).
 set -uo pipefail
@@ -30,6 +31,23 @@ plan_root() { # $1 root; sets code
   terraform -chdir="$1" plan -input=false -no-color -lock=$lock -detailed-exitcode \
     -var-file="tenants/$tk.tfvars" -out="$out/$2.tfplan" > "$out/$2.plan.txt" 2>&1
   code=$?
+}
+
+policy_ok() { # $1 root, $2 name: Conftest on the current saved plan
+  terraform -chdir="$1" show -json "$out/$2.tfplan" > "$out/$2.post.json" &&
+    conftest test --no-color --policy "$repo_root/policy" --data "$out/$2.context.json" "$out/$2.post.json"
+}
+
+post_apply() { # $1 root, $2 name; sets result, failed
+  # A fresh create can leave a diff (Entra adds a user_impersonation scope while instantiating the non-gallery
+  # template; findings 2026-10-20), so one more policy-checked apply is allowed before the root counts as not clean.
+  plan_root "$1" "$2"; cat "$out/$2.plan.txt"
+  [[ $code -eq 0 ]] && { result="✅ applied, clean"; return; }
+  if [[ $code -eq 2 ]] && policy_ok "$1" "$2" && terraform -chdir="$1" apply -input=false -no-color "$out/$2.tfplan"; then
+    plan_root "$1" "$2"; cat "$out/$2.plan.txt"
+    [[ $code -eq 0 ]] && { result="✅ applied, clean after a 2nd apply"; return; }
+  fi
+  result="❌ not clean after apply"; failed=1
 }
 
 for root in "${roots[@]}"; do
@@ -73,7 +91,7 @@ for root in "${roots[@]}"; do
             if [[ $code -eq 2 ]]; then terraform -chdir="$root" apply -input=false -no-color "$out/$name.tfplan" || { result="❌ apply failed"; failed=1; }
             elif [[ $code -ne 0 ]]; then result="❌ apply failed"; failed=1; fi
           fi
-          [[ $result == "✅" ]] && result="✅ applied"
+          [[ $result == "✅" ]] && post_apply "$root" "$name"
         else
           result="❌ not applied (policy)"
         fi ;;
