@@ -4,7 +4,7 @@ Move applications from **Okta** to **Microsoft Entra ID** "as code": every app, 
 
 This repo is a working proof of concept, built on free accounts with dummy data. It is also a step-by-step guide you can follow to run the same migration on your own lab, and later adapt to a real environment.
 
-> **Status (updated 2026-10-20):** Run 1, Lab Phase 3 in progress. Done: Okta discovery and nightly snapshot (green five nights), Entra brownfield import, 4 SAML apps and 1 OIDC app translated, the pipeline built, and the first pull request merged: nonprod built entirely through the pipeline (41 objects), and prod applied after approval with no changes. Lab Phase 3 exit tests 3 of 4 passed (unsafe PR blocked, PR without a change ticket blocked). Next: the induced-drift test, then the OIDC sign-in and claims experiment carried from Lab Phase 2. Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
+> **Status (updated 2026-10-20):** Run 1, Lab Phase 3 in progress. Done: Okta discovery and nightly snapshot (green five nights), Entra brownfield import, 4 SAML apps and 1 OIDC app translated, the pipeline built, and the first pull request merged: nonprod built entirely through the pipeline (41 objects), and prod applied after approval with no changes. Lab Phase 3 exit tests 3 of 4 passed (unsafe PR blocked, PR without a change ticket blocked); the pipeline now re-plans after every apply and requires a clean plan. Next: the induced-drift test, then the OIDC sign-in and claims experiment carried from Lab Phase 2. Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
 
 > **Lab only.** Personal free accounts, fictional users, nothing to do with any company or client. Do not point this repo at a production tenant without reading [Adapting this to your own environment](#adapting-this-to-your-own-environment).
 
@@ -323,7 +323,7 @@ Graph permissions: reader and planner `Directory.Read.All`, `Policy.Read.All`; a
 - Every new CA policy starts in report-only.
 - Nothing in `entra/legacy/` may be destroyed.
 
-**3.5 Workflows:** `plan.yml` (on every PR), `apply.yml` (on merge: nonprod, then prod after approval), `drift.yml` (nightly; opens an issue on drift). They share `.github/scripts/tf-roots.sh` (every root in order, Conftest on each plan) and `.github/scripts/change-gate.sh`. Every PR starts from `.github/pull_request_template.md`, which holds the `Change: github:<issue>` line.
+**3.5 Workflows:** `plan.yml` (on every PR), `apply.yml` (on merge: nonprod, then prod after approval), `drift.yml` (nightly; opens an issue on drift). They share `.github/scripts/tf-roots.sh` (every root in order, Conftest on each plan; after an apply it plans again and a root is done only when that plan shows no changes) and `.github/scripts/change-gate.sh`. Every PR starts from `.github/pull_request_template.md`, which holds the `Change: github:<issue>` line.
 
 **3.6 Branch protection on `main`:** require the checks `policy-selftest`, `change-gate / check`, `plan (lab-np)`, `plan (lab)`; require a PR but **0 approvals** (you cannot approve your own PR). What each check does, and the `gh api` command to set it: [docs/git-check-plans-info.md](docs/git-check-plans-info.md).
 

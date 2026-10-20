@@ -462,3 +462,15 @@ Current phase set to 1 at the top of this log.
 - Evidence: PRs #4 and #5 and their run IDs above; issue #3.
 - Change to the client plan, if any: (1) After every apply, re-plan and require "No changes"; if a fresh create leaves a diff, apply once more and log it, and fail if it still differs. A wave is not done until its post-apply plan is clean. (2) SAML apps built with `azuread_application` + `template_id` need a second apply (or an explicit `api` block) to drop the template's `user_impersonation` scope.
 - Accepted risks added, if any: Nonprod wave-00 holds 3 pending changes until the next `entra/**` merge.
+
+## 2026-10-20, Run 1, Lab Phase 3, post-apply clean-plan check merged; nonprod wave-00 converged
+- What the docs said: findings earlier today: a wave is done only when its post-apply plan is clean; nonprod wave-00 held 3 pending changes.
+- What actually happened:
+  - PR #7 (change issue #6): `tf-roots.sh apply` now re-plans each applied root; "No changes" = done, otherwise Conftest on the new plan, one more apply, re-plan, and fail if still not clean. Comment in `entra/waves/wave-00/apps-saml.tf`; runbook section 6 note. PR checks green (lab no changes, lab-np 3 to change). Owner merged.
+  - Apply run 39480801437: `nonprod` platform "No changes"; wave-00 `0 added, 3 changed`, then the post-apply plan "No changes", so the summary reads "applied, clean" (no second apply needed: removing the scope sticks). `prod` approved by the owner, "No changes" on all three roots. Run success.
+  - Verified in the tenant: `api.oauth2PermissionScopes` is empty on `iac-np-saml-custserv-desk`, `-finance-ledger`, `-hr-portal`, same as prod `iac-saml-hr-portal`. Issue #6 closed `change:closed`.
+  - The second-apply path in `post_apply` has not run yet; it runs the first time a fresh template-built SAML app is created (next wave, or a nonprod rebuild).
+- Time taken: about 20 minutes.
+- Evidence: PR #7; apply run 39480801437; `az ad app list` scope check.
+- Change to the client plan, if any: None beyond the earlier entry (post-apply clean plan is now in the pipeline).
+- Accepted risks added, if any: None. The "Nonprod wave-00 holds 3 pending changes" risk from the earlier entry is closed.
