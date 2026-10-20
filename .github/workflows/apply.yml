@@ -1,0 +1,61 @@
+# On merge to main: change gate, then nonprod (copy in the lab tenant, state tfstate-nonprod), then prod after
+# the prod environment's required reviewer approves. Signs in as iac-applier (federated credential per
+# environment; no secret). Each root is planned, policy-checked, and applied from the saved plan.
+name: apply
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "entra/**"
+      - "policy/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # iac-applier federated credential
+  issues: read # change gate
+  pull-requests: read # change gate
+
+concurrency:
+  group: apply
+  cancel-in-progress: false
+
+env:
+  ARM_USE_OIDC: "true"
+  ARM_USE_AZUREAD: "true"
+  ARM_CLIENT_ID: ${{ vars.APPLIER_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  TF_IN_AUTOMATION: "1"
+
+jobs:
+  change-gate:
+    uses: ./.github/workflows/change-gate.yml
+
+  nonprod:
+    needs: change-gate
+    runs-on: ubuntu-24.04
+    environment: nonprod
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: 1.16.4
+          terraform_wrapper: false
+      - run: .github/scripts/install-conftest.sh
+      - name: Apply nonprod
+        run: .github/scripts/tf-roots.sh apply lab-np
+
+  prod:
+    needs: nonprod
+    runs-on: ubuntu-24.04
+    environment: prod # required reviewer, not the author
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: 1.16.4
+          terraform_wrapper: false
+      - run: .github/scripts/install-conftest.sh
+      - name: Apply prod
+        run: .github/scripts/tf-roots.sh apply lab

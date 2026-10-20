@@ -1,0 +1,56 @@
+# Every pull request: policy self-test, change gate, then fmt, validate, plan and Conftest for every Entra root,
+# once per tenant_key. Signs in as iac-planner (read-only, federated credential for pull_request; no secret).
+# Plan JSON is not uploaded as an artifact: artifacts on a public repo are downloadable by any GitHub user.
+name: plan
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write # iac-planner federated credential
+  issues: read # change gate
+  pull-requests: read # change gate
+
+concurrency:
+  group: plan-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  policy-selftest:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: .github/scripts/install-conftest.sh
+      - run: policy/test.sh
+
+  change-gate:
+    uses: ./.github/workflows/change-gate.yml
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+
+  plan:
+    needs: policy-selftest
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        tenant_key: [lab-np, lab]
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_USE_AZUREAD: "true"
+      ARM_CLIENT_ID: ${{ vars.PLANNER_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      TF_IN_AUTOMATION: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: 1.16.4
+          terraform_wrapper: false
+      - run: .github/scripts/install-conftest.sh
+      - name: terraform fmt
+        run: terraform fmt -check -recursive -diff entra
+      - name: Plan and policy check
+        run: .github/scripts/tf-roots.sh plan ${{ matrix.tenant_key }}

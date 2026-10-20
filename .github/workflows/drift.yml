@@ -1,0 +1,57 @@
+# Nightly drift check of prod Entra: terraform plan -detailed-exitcode per root as iac-reader (read-only,
+# federated credential for refs/heads/main). Exit 2 opens one issue labeled "drift", or comments on the open one.
+# Drift is never reverted automatically: reconcile by PR (codify the portal change or put it back).
+name: drift
+
+on:
+  schedule:
+    - cron: "41 10 * * *" # 10:41 UTC, after the Okta snapshot
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # iac-reader federated credential
+  issues: write # open or update the drift issue
+
+concurrency:
+  group: drift
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    runs-on: ubuntu-24.04
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_USE_AZUREAD: "true"
+      ARM_CLIENT_ID: ${{ vars.READER_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      TF_IN_AUTOMATION: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: 1.16.4
+          terraform_wrapper: false
+      - run: .github/scripts/install-conftest.sh
+      - name: Plan prod
+        id: plan
+        run: .github/scripts/tf-roots.sh drift lab
+
+      - name: Open or update the drift issue
+        if: steps.plan.outputs.drift == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRIFT_FILE: ${{ steps.plan.outputs.drift_file }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          body="$(printf 'Nightly drift check found differences between prod Entra and `entra/`.\n\nRun: %s\n\n' "$RUN_URL"; cat "$DRIFT_FILE"; printf '\nReconcile by PR: codify the portal change, or change it back through the pipeline. Check the Entra audit log for who changed it.\n')"
+          open=$(gh issue list --repo "$GITHUB_REPOSITORY" --label drift --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$open" ]]; then
+            gh issue comment "$open" --repo "$GITHUB_REPOSITORY" --body "$body"
+            echo "Updated drift issue #$open" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            url=$(gh issue create --repo "$GITHUB_REPOSITORY" --label drift --title "Entra drift detected $(date -u +%F)" --body "$body")
+            echo "Opened drift issue $url" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "::error title=Entra drift::prod differs from entra/; see the drift issue"
+          exit 1

@@ -12,3 +12,18 @@ variable "tenant_id" {
   description = "Entra tenant ID"
   type        = string
 }
+
+variable "name_prefix" {
+  description = "Prefix for display names; selects the copy (iac = prod, iac-np = nonprod) in the one lab tenant"
+  type        = string
+}
+
+variable "ca_prefix" {
+  description = "CA policy name prefix, <TENANT> in <TENANT>-CA<NN> (LAB, LAB-NP)"
+  type        = string
+}
+
+variable "use_shared_audience" {
+  description = "custserv-desk carries the test SP's shared audience IAMShowcase (unique per tenant, so only one copy can)"
+  type        = bool
+}

@@ -1,0 +1,22 @@
+{
+  "format_version": "1.2",
+  "resource_changes": [
+    {
+      "address": "azuread_conditional_access_policy.bad",
+      "type": "azuread_conditional_access_policy",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "display_name": "LAB-CA98 - Test - Require MFA - All - Any location",
+          "state": "enabled",
+          "conditions": [{"users": [{"excluded_groups": []}]}]
+        }
+      }
+    },
+    {
+      "address": "azuread_group.legacy_finance",
+      "type": "azuread_group",
+      "change": {"actions": ["delete"], "after": null}
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 # Okta: Authorization Code with a client secret. oidcdebugger.com cannot redeem a code, so run 1 proves
 # sign-in with an ID token (implicit, form_post) and no secret exists in Entra.
 resource "azuread_application" "oidc_portal" {
-  display_name     = "iac-oidc-portal"
+  display_name     = "${var.name_prefix}-oidc-portal"
   sign_in_audience = "AzureADMyOrg"
 
   api {
@@ -34,7 +34,7 @@ resource "azuread_app_role_assignment" "oidc_portal" {
 }
 
 resource "azuread_claims_mapping_policy" "oidc_portal" {
-  display_name = "iac-cmp-oidc-portal"
+  display_name = "${var.name_prefix}-cmp-oidc-portal"
   definition = [jsonencode({
     ClaimsMappingPolicy = {
       Version              = 1

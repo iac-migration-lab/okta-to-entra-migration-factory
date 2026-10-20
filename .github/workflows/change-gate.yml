@@ -1,0 +1,28 @@
+# Reusable change gate (docs/change-gate-design.md). Called by plan.yml (with the PR number) and apply.yml
+# (PR resolved from the merge commit). Lab adapter: GitHub Issues; a real ITSM is another adapter in the script.
+name: change-gate
+
+on:
+  workflow_call:
+    inputs:
+      pr_number:
+        description: Pull request number; empty means "find the PR for this commit"
+        type: string
+        default: ""
+
+permissions:
+  issues: read # read the change issue
+  pull-requests: read # read the PR body (and find the PR for a merge commit)
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check change record
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          SHA: ${{ github.sha }}
+        run: .github/scripts/change-gate.sh
