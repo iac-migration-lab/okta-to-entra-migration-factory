@@ -18,7 +18,7 @@ resource "azuread_conditional_access_policy" "lab_ca10" {
 
     users {
       included_groups = [data.azuread_group.staff["finance"].object_id]
-      excluded_groups = [local.bg_ca_exclusion_group_id]
+      excluded_groups = [] # EXIT TEST: break-glass exclusion removed on purpose; never merge
       excluded_users  = [local.owner_user_id]
     }
   }
