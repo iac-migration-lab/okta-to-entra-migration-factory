@@ -3,6 +3,8 @@
 #   it-tools       msgraph customClaimsPolicy, beta (department)
 #   custserv-desk  portal only (nothing here)
 #   finance-ledger Entra defaults
+# Result 2026-10-20 (findings): portal edits are blocked on hr-portal, seen field by field on it-tools (plan wants
+# them back), and invisible on custserv-desk. Decision: msgraph customClaimsPolicy for SAML claims.
 
 resource "azuread_claims_mapping_policy" "hr_portal" {
   display_name = "${var.name_prefix}-cmp-hr-portal"
