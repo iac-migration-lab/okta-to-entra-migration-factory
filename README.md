@@ -4,7 +4,7 @@ Move applications from **Okta** to **Microsoft Entra ID** "as code": every app, 
 
 This repo is a working proof of concept, built on free accounts with dummy data. It is also a step-by-step guide you can follow to run the same migration on your own lab, and later adapt to a real environment.
 
-> **Status (updated 2026-10-18):** Run 1, Lab Phase 3 in progress. Done: Okta discovery and nightly snapshot (green three nights), Entra brownfield import, 4 SAML apps and 1 OIDC app translated, and the pipeline built (plan, policy rules, change gate, apply, drift). The first pull request plans green. Next: merge it so nonprod builds through the pipeline, then the Lab Phase 3 exit tests. Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
+> **Status (updated 2026-10-20):** Run 1, Lab Phase 3 in progress. Done: Okta discovery and nightly snapshot (green five nights), Entra brownfield import, 4 SAML apps and 1 OIDC app translated, the pipeline built, and the first pull request merged: nonprod built entirely through the pipeline (41 objects), and prod applied after approval with no changes. Next: the remaining Lab Phase 3 exit tests (rule-breaking PR, PR without a change ticket, induced drift), then the OIDC sign-in and claims experiment carried from Lab Phase 2. Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
 
 > **Lab only.** Personal free accounts, fictional users, nothing to do with any company or client. Do not point this repo at a production tenant without reading [Adapting this to your own environment](#adapting-this-to-your-own-environment).
 
@@ -310,7 +310,7 @@ From here on, Entra changes happen **only** through pull requests.
 
 Graph permissions: reader and planner `Directory.Read.All`, `Policy.Read.All`; applier `Application.ReadWrite.All`, `Group.ReadWrite.All`, `Policy.ReadWrite.ConditionalAccess`. Admin consent from the break-glass account only.
 
-**3.2 GitHub environments:** `nonprod` (no gate) and `prod` (required reviewer: the second GitHub account; self-review blocked; `main` only).
+**3.2 GitHub environments:** `nonprod` (no gate) and `prod` (required reviewer; `main` only). Run 1: the owner is the only reviewer and **Prevent self-review** is off, because GitHub hides the approve option from whoever triggered the run. Do not create a second GitHub account for this (GitHub allows one free personal account per person). Production: two real reviewers, self-review blocked. To approve: open the run, click **View** in the yellow banner, tick **prod**, **Approve and deploy**.
 
 **3.2a Nonprod with only one tenant.** A free account gets one Entra tenant, so `nonprod` is a prefixed copy in the same tenant: `tenant_key = "lab-np"` builds `iac-np-*` objects and `LAB-NP-CA*` policies with state in `tfstate-nonprod`. Prod (`lab`) keeps the `iac-*` names. With two tenants, `lab-np.tfvars` would just carry the other tenant ID.
 
@@ -325,9 +325,9 @@ Graph permissions: reader and planner `Directory.Read.All`, `Policy.Read.All`; a
 
 **3.5 Workflows:** `plan.yml` (on every PR), `apply.yml` (on merge: nonprod, then prod after approval), `drift.yml` (nightly; opens an issue on drift). They share `.github/scripts/tf-roots.sh` (every root in order, Conftest on each plan) and `.github/scripts/change-gate.sh`. Every PR starts from `.github/pull_request_template.md`, which holds the `Change: github:<issue>` line.
 
-**3.6 Branch protection on `main`:** require the checks `policy-selftest`, `change-gate / check`, `plan (lab-np)`, `plan (lab)`.
+**3.6 Branch protection on `main`:** require the checks `policy-selftest`, `change-gate / check`, `plan (lab-np)`, `plan (lab)`; require a PR but **0 approvals** (you cannot approve your own PR). What each check does, and the `gh api` command to set it: [docs/git-check-plans-info.md](docs/git-check-plans-info.md).
 
-**Exit tests:** a rule-breaking PR fails; a PR without a change ticket fails; a compliant PR applies to nonprod on merge and to prod only after approval; one induced drift opens exactly one issue.
+**Exit tests:** a rule-breaking PR fails; a PR without a change ticket fails; a compliant PR applies to nonprod on merge and to prod only after approval (✅ 2026-10-20, PR #2); one induced drift opens exactly one issue.
 
 ---
 
@@ -382,6 +382,7 @@ The biggest surprises from run 1. Full details and evidence in [docs/findings-lo
 | Pipeline state | Read-only planner got 403 "failed to lock" on a state file that did not exist yet | Create each new state file once with a writer identity |
 | Applier permissions | SAML apps with claims and group assignments need more than the four permissions in the plan | Add `Policy.ReadWrite.ApplicationConfiguration`, `AppRoleAssignment.ReadWrite.All`, `Directory.Read.All` |
 | NameID | Okta used `@iaclab.example` logins, which cannot be Entra user names | The user identifier sent to apps changes on migration; tell app owners |
+| Approvals | One person cannot approve their own PR or their own prod deployment; a "Require approvals" box left on blocked the merge | One-person lab: 0 PR approvals, self-review off. Production: name two reviewers before the first wave |
 
 ---
 
@@ -445,4 +446,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-18 (Run 1, Lab Phase 3 in progress)._
+_Last updated: 2026-10-20 (Run 1, Lab Phase 3 in progress)._
