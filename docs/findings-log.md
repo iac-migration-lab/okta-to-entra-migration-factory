@@ -1,5 +1,5 @@
 Current run: 1 (Implementation Phase 0)
-Current lab phase: 3 (Lab Phase 2 carry-overs done; nonprod it-tools claims restore pending)
+Current lab phase: 3 (Lab Phase 2 carry-overs done)
 
 # Findings Log
 
@@ -532,3 +532,11 @@ Current phase set to 1 at the top of this log.
   3. **Portal-only (method C):** drift is invisible to Terraform. Every migrated app's claims must be in code; an inventory check should flag apps with a `claimsPolicy` that no state tracks.
   4. Portal saves rewrite the whole policy (nulls added, basic claim set off). Expect a noisy diff after any portal touch; review it, do not just re-apply blindly.
 - Accepted risks added, if any: Nonprod `iac-np-saml-it-tools` claims differ from code until the next `entra/**` merge (nonprod only, test site, dummy users).
+
+## 2026-10-20, Run 1, Lab Phase 2 (carried), claims experiment: pipeline overwrites the portal edit (method B)
+- What the docs said: claims experiment entry above: the next `entra/**` merge should restore nonprod it-tools claims to code.
+- What actually happened: PR #9 (change issue #8, comment in `claims.tf` recording the result) merged by the owner. Apply run 39489110081: `nonprod` wave-00 `0 added, 1 changed`, post-apply plan "No changes" ("applied, clean"); `prod` approved by the owner, "No changes" on all three roots. Graph after: `iac-np-saml-it-tools` claims are back to code: `includeBasicClaimSet` true, NameID `<- userprincipalname`, `department <- department`, `costCenter` gone. Issue #8 closed `change:closed`.
+- Time taken: about 10 minutes.
+- Evidence: PR #9; apply run 39489110081; Graph beta `servicePrincipals/{id}/claimsPolicy` read.
+- Change to the client plan, if any: Confirms the decision: with the msgraph custom claims policy, a portal edit is seen by the plan and undone by the next apply. In production the nightly drift job should raise it first, so someone decides whether to keep it (change the code) or undo it (apply).
+- Accepted risks added, if any: None. The "it-tools claims differ from code" risk from the entry above is closed.
