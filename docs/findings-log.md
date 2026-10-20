@@ -492,3 +492,11 @@ Current phase set to 1 at the top of this log.
   - **Password storage and handover:** a plaintext password file in `~/.okta-lab/` and the macOS clipboard. Production: a password manager or vault entry, shared through the vault, never a local file or the clipboard.
   - **Implicit `id_token` with `form_post` to a third-party debugger (oidcdebugger.com):** proves the app object and claims only. Production: authorization code with PKCE (Proof Key for Code Exchange) against the real app's redirect URI, and implicit grant off. The Entra portal itself shows a sidebar alert on `iac-oidc-portal` about the implicit flow being enabled and not recommended (owner saw it 2026-10-20; exact wording not captured). Treat that alert as expected in the lab and as a defect in production. The code that turns it on is `implicit_grant { id_token_issuance_enabled = true }` in `entra/waves/wave-00/app-oidc.tf`; a production app module should leave it out.
   - **Real token in a public repo:** the evidence screenshot shows a full (expired) ID token, the tenant ID and a user object ID. That is acceptable only for dummy data in a throwaway tenant. Production evidence keeps only the decoded claim names and values, redacts IDs, and stays in a private store.
+
+## 2026-10-20, Run 1, Lab Phase 2 (carried), OIDC negative test: unassigned user blocked (owner-reported, no evidence)
+- What the docs said: OIDC sign-in entry above: optional negative test, an unassigned user (`gus.tanaka`, Finance) should get AADSTS50105 at `iac-oidc-portal`.
+- What actually happened: The owner ran the test and reports it passed (sign-in refused). No screenshot or error code was captured. Claude queried the Entra sign-in log (`/auditLogs/signIns`) for `gus.tanaka` since 2026-10-20 00:00 UTC: no rows returned, possibly ingestion lag; a second query by app ID timed out (Graph 504). Optional item closed on the owner's report.
+- Time taken: under 10 minutes.
+- Evidence: none (owner statement only).
+- Change to the client plan, if any: Negative tests need evidence like positive ones: capture the AADSTS code and correlation ID, or export the sign-in log row.
+- Accepted risks added, if any: The "unassigned user blocked" result for the OIDC app rests on the owner's report; the setting behind it (`app_role_assignment_required = true`, IT group only) is in code and verified by plan.
