@@ -4,7 +4,7 @@ Move applications from **Okta** to **Microsoft Entra ID** "as code": every app, 
 
 This repo is a working proof of concept, built on free accounts with dummy data. It is also a step-by-step guide you can follow to run the same migration on your own lab, and later adapt to a real environment.
 
-> **Status (updated 2026-10-20):** Run 1, Lab Phase 3 in progress. Done: Okta discovery and nightly snapshot (green five nights), Entra brownfield import, 4 SAML apps and 1 OIDC app translated, the pipeline built, and the first pull request merged: nonprod built entirely through the pipeline (41 objects), and prod applied after approval with no changes. Lab Phase 3 exit tests 3 of 4 passed (unsafe PR blocked, PR without a change ticket blocked); the pipeline now re-plans after every apply and requires a clean plan. OIDC sign-in proven (carried from Lab Phase 2). Next: the induced-drift test, then the claims experiment. Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
+> **Status (updated 2026-10-20):** Run 1, Lab Phase 3 in progress. Done: Okta discovery and nightly snapshot (green five nights), Entra brownfield import, 4 SAML apps and 1 OIDC app translated, the pipeline built, and the first pull request merged: nonprod built entirely through the pipeline (41 objects), and prod applied after approval with no changes. Lab Phase 3 exit tests 3 of 4 passed (unsafe PR blocked, PR without a change ticket blocked); the pipeline now re-plans after every apply and requires a clean plan. OIDC sign-in (including an unassigned user blocked) and the claims experiment are done, so Lab Phase 2 has nothing left. Next: the induced-drift test. Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
 
 > **Lab only.** Personal free accounts, fictional users, nothing to do with any company or client. Do not point this repo at a production tenant without reading [Adapting this to your own environment](#adapting-this-to-your-own-environment).
 
@@ -288,6 +288,16 @@ cd entra/platform && terraform init && terraform plan -var-file=tenants/lab.tfva
 cd entra/waves/wave-00 && terraform init && terraform plan -var-file=tenants/lab.tfvars
 ```
 
+**2.6a Claims experiment (run 1 result, 2026-10-20).** Each app's claims were edited in the portal, then planned:
+
+| Method | Portal edit | Terraform sees it? |
+|---|---|---|
+| Claims mapping policy (`azuread`) | Blocked; the portal also shows the wrong claims | Nothing to see |
+| Custom claims policy (`msgraph`, beta) | Allowed; saving also turned off the basic claim set | **Yes**, every field |
+| Portal only | Allowed | **No**, invisible |
+
+Decision for SAML claims: the `msgraph` custom claims policy. Detail in the findings log.
+
 CA policy names follow `<TENANT>-CA<NN> - <Apps> - <Control> - <Persona> - <Conditions>`.
 
 **2.7 Test sign-in through Entra.** Assign a test user, sign in to each SAML app from My Apps (`https://myapps.microsoft.com`), and check the attributes the test site shows. Screenshots go in `docs/evidence/`. Test the OIDC app with oidcdebugger (run 1: ✅ 2026-10-20, ID token carries `department`; screenshot `docs/evidence/2026-10-20-oidc-portal-success.png`). Settings: authorize URI `https://login.microsoftonline.com/<tenant ID>/oauth2/v2.0/authorize`, the app's client ID, scope `openid profile email`, response type `id_token`, response mode `form_post`, in a private window.
@@ -383,6 +393,7 @@ The biggest surprises from run 1. Full details and evidence in [docs/findings-lo
 | Applier permissions | SAML apps with claims and group assignments need more than the four permissions in the plan | Add `Policy.ReadWrite.ApplicationConfiguration`, `AppRoleAssignment.ReadWrite.All`, `Directory.Read.All` |
 | NameID | Okta used `@iaclab.example` logins, which cannot be Entra user names | The user identifier sent to apps changes on migration; tell app owners |
 | Approvals | One person cannot approve their own PR or their own prod deployment; a "Require approvals" box left on blocked the merge | One-person lab: 0 PR approvals, self-review off. Production: name two reviewers before the first wave |
+| Claims | A portal edit to claims is invisible unless the claims are in code; the portal can also show the wrong claims | Put every app's claims in code with the msgraph custom claims policy; review the diff after any portal touch |
 
 ---
 

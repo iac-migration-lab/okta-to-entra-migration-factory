@@ -51,7 +51,7 @@ The backend files name `tfstate-prod`; nonprod overrides it at init (`-backend-c
 |---|---|---|
 | Read Okta app settings and attribute statements from inventory | Draft | |
 | Create Entra enterprise app (gallery template or custom) in a wave | Draft | |
-| Claims: mapping policy vs custom claims policy | Draft | |
+| Claims: mapping policy vs custom claims policy | Draft | Use the msgraph `customClaimsPolicy` (beta): visible in the portal, and drift detection sees field-level edits. Claims mapping policy locks the portal but the blade shows the wrong claims. Never leave claims portal-only (invisible to Terraform). Findings 2026-10-20. |
 | Assign groups | Draft | |
 | Exchange metadata with the SP (service provider) | Draft | |
 | Test sign-in | Draft | |

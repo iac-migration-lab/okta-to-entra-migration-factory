@@ -1,5 +1,5 @@
 Current run: 1 (Implementation Phase 0)
-Current lab phase: 3 (carried from Lab Phase 2: claims portal-edit experiment)
+Current lab phase: 3 (Lab Phase 2 carry-overs done; nonprod it-tools claims restore pending)
 
 # Findings Log
 
@@ -511,3 +511,24 @@ Current phase set to 1 at the top of this log.
 - Evidence: `docs/evidence/2026-10-20-oidc-portal-gus-unassigned.png`.
 - Change to the client plan, if any: A negative test only counts once the user gets past authentication; check the AADSTS code, not just "sign-in failed".
 - Accepted risks added, if any: None. The "rests on the owner's report" risk from the entry above is closed.
+
+## 2026-10-20, Run 1, Lab Phase 2 (carried), claims experiment: portal edits vs three claims methods
+- What the docs said: build-phases Lab Phase 2 step 6 / POC plan: app A via `azuread_claims_mapping_policy`, app B via msgraph `customClaimsPolicy` (beta), app C portal only. Edit each in the portal, run `terraform plan`, record what each method sees, ignores and overwrites.
+- What actually happened: Run on the nonprod copies (`iac-np-*`), so the nightly prod drift job stays clean for the induced-drift exit test. Baseline local plan of nonprod wave-00 (owner CLI login, `-lock=false`, `TF_DATA_DIR` outside the repo): "No changes". Claims read before and after via Graph beta `servicePrincipals/{id}/claimsPolicy` and v1.0 `claimsMappingPolicies`. Owner made the portal edits (Enterprise apps > Single sign-on > Attributes & Claims); "no surprises".
+
+  | App | Method | Portal edit | What the portal did | `terraform plan` after |
+  |---|---|---|---|---|
+  | A `iac-np-saml-hr-portal` | `azuread_claims_mapping_policy` | Try to add `costCenter` | **Blocked.** "Add new claim" and "Add a group claim" greyed out; banner "This configuration was overwritten by a claim mapping policy created via Graph/PowerShell". The blade still lists the template defaults (emailaddress, givenname, name, surname), **not** the claims the app really gets (department, title, employeeNumber from the policy). | No changes (nothing edited) |
+  | B `iac-np-saml-it-tools` | msgraph `customClaimsPolicy` | `department` source to `user.jobtitle`; add `costCenter` = `user.companyname` | Saved. Graph after: `department <- jobtitle`, `costCenter <- companyname`, and **`includeBasicClaimSet` flipped `true` -> `false`** (a side effect the owner did not choose and the portal does not show) | **Sees all of it:** `msgraph_update_resource.it_tools_claims` 1 to change: `jobtitle -> department`, remove `costCenter`, `includeBasicClaimSet false -> true`, plus cosmetic nulls the portal writes (`condition`, `transformations`, `namespace`, `samlAttributeNameFormat`, `serviceProviderNameQualifier`) |
+  | C `iac-np-saml-custserv-desk` | portal only | Add `department` = `user.department` | Saved. Before: no `claimsPolicy` object (Graph 404, Entra defaults). After: a `claimsPolicy` exists with NameID, givenname, surname, emailaddress, name, department | **Invisible:** no change (not in code) |
+
+  - Overwrite: not yet proven for B. The next merged PR that touches `entra/**` re-applies nonprod wave-00 and should restore B to code (`department <- department`, no `costCenter`, basic claim set on). Recorded when it happens.
+  - C keeps the portal-added `department` claim; harmless, out of code by design.
+- Time taken: about 30 minutes.
+- Evidence: `docs/evidence/2026-10-20-claims-a-hr-portal.png`, `-b-it-tools.png`, `-c-custserv-desk.png` (B was saved as `026-...`, renamed); plan output and Graph before/after JSON in the session scratchpad (not committed).
+- Change to the client plan, if any:
+  1. **Claims mechanism decision: msgraph `customClaimsPolicy` (method B) for SAML claims.** It shows in the portal like a normal app, and drift detection sees field-level portal edits, including hidden ones like `includeBasicClaimSet`. Cost: beta API, and the create-then-update workaround (`msgraph_resource_action` + `msgraph_update_resource`).
+  2. **Claims mapping policy (method A):** the portal locks editing (good for control) but shows the wrong claims (bad for app owners and support). Use it only where the portal lock is wanted, and tell the service desk the blade is misleading.
+  3. **Portal-only (method C):** drift is invisible to Terraform. Every migrated app's claims must be in code; an inventory check should flag apps with a `claimsPolicy` that no state tracks.
+  4. Portal saves rewrite the whole policy (nulls added, basic claim set off). Expect a noisy diff after any portal touch; review it, do not just re-apply blindly.
+- Accepted risks added, if any: Nonprod `iac-np-saml-it-tools` claims differ from code until the next `entra/**` merge (nonprod only, test site, dummy users).
