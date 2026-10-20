@@ -8,3 +8,5 @@ output "saml_apps" {
 output "oidc_portal_client_id" {
   value = azuread_application.oidc_portal.client_id
 }
+
+# Exit test: no change ticket in the PR body (must fail the change gate; never merge)
