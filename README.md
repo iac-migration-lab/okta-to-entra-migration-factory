@@ -4,7 +4,7 @@ Move applications from **Okta** to **Microsoft Entra ID** "as code": every app, 
 
 This repo is a working proof of concept, built on free accounts with dummy data. It is also a step-by-step guide you can follow to run the same migration on your own lab, and later adapt to a real environment.
 
-> **Status (updated 2026-10-20):** Run 1, Lab Phase 3 in progress. Done: Okta discovery and nightly snapshot (green five nights), Entra brownfield import, 4 SAML apps and 1 OIDC app translated, the pipeline built, and the first pull request merged: nonprod built entirely through the pipeline (41 objects), and prod applied after approval with no changes. Next: the remaining Lab Phase 3 exit tests (rule-breaking PR, PR without a change ticket, induced drift), then the OIDC sign-in and claims experiment carried from Lab Phase 2. Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
+> **Status (updated 2026-10-20):** Run 1, Lab Phase 3 in progress. Done: Okta discovery and nightly snapshot (green five nights), Entra brownfield import, 4 SAML apps and 1 OIDC app translated, the pipeline built, and the first pull request merged: nonprod built entirely through the pipeline (41 objects), and prod applied after approval with no changes. Lab Phase 3 exit tests 3 of 4 passed (unsafe PR blocked, PR without a change ticket blocked). Next: the induced-drift test, then the OIDC sign-in and claims experiment carried from Lab Phase 2. Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
 
 > **Lab only.** Personal free accounts, fictional users, nothing to do with any company or client. Do not point this repo at a production tenant without reading [Adapting this to your own environment](#adapting-this-to-your-own-environment).
 
@@ -327,7 +327,7 @@ Graph permissions: reader and planner `Directory.Read.All`, `Policy.Read.All`; a
 
 **3.6 Branch protection on `main`:** require the checks `policy-selftest`, `change-gate / check`, `plan (lab-np)`, `plan (lab)`; require a PR but **0 approvals** (you cannot approve your own PR). What each check does, and the `gh api` command to set it: [docs/git-check-plans-info.md](docs/git-check-plans-info.md).
 
-**Exit tests:** a rule-breaking PR fails; a PR without a change ticket fails; a compliant PR applies to nonprod on merge and to prod only after approval (✅ 2026-10-20, PR #2); one induced drift opens exactly one issue.
+**Exit tests:** a rule-breaking PR fails (✅ 2026-10-20, PR #4); a PR without a change ticket fails (✅ 2026-10-20, PR #5); a compliant PR applies to nonprod on merge and to prod only after approval (✅ 2026-10-20, PR #2); one induced drift opens exactly one issue.
 
 ---
 

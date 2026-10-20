@@ -449,3 +449,16 @@ Current phase set to 1 at the top of this log.
 - Evidence: PR #2; apply run 39441099426; `gh api .../branches/main/protection`; `gh api .../environments/prod` (`prevent_self_review: false`, reviewers `["mlencioni"]`); `az ad group list` / `az ad app list` / Graph CA list filtered on `iac-np` / `LAB-NP`.
 - Change to the client plan, if any: (1) Approval of a PR and of a prod deployment needs a second real person; plan the reviewer roster before the first wave, not a second account per person (GitHub terms allow one free personal account per person). (2) Document "leave approvals at 0" only for a one-person lab.
 - Accepted risks added, if any: `main` needs no PR approval, and the owner can approve their own prod deployments (`prevent_self_review` off). One person can merge and ship to prod; the change gate and the policy rules are the only controls. Remove in a later run once a second reviewer exists.
+
+## 2026-10-20, Run 1, Lab Phase 3, exit tests: rule-breaking PR and PR without a change ticket both blocked
+- What the docs said: README Lab Phase 3 exit tests: a rule-breaking PR fails; a PR without a change ticket fails.
+- What actually happened:
+  - **Rule-breaking PR #4** (change issue #3, `change:scheduled`, valid window, so only the policy could fail): set `excluded_groups = []` on `azuread_conditional_access_policy.lab_ca10` in wave-00. `change-gate / check` and `policy-selftest` passed; `plan (lab)` and `plan (lab-np)` failed with `FAIL ... azuread_conditional_access_policy.lab_ca10: CA policy must exclude bg-ca-exclusion (21008cb0-...)`. Merge state `BLOCKED`. Plan run 39445363971.
+  - **PR #5 without a change line** (comment-only change in wave-00 outputs): `change-gate / check` failed with `PR #5 has no 'Change: <system>:<id>' line`; both plans passed. Merge state `BLOCKED`. Plan run 39445409988.
+  - Both PRs closed unmerged, branches deleted; issue #3 set `change:closed` and closed.
+  - **New finding, nonprod not clean after its first apply:** PR #5's `plan (lab-np)` shows `0 to add, 3 to change` on wave-00: the three `azuread_application.saml` apps (custserv-desk, finance-ledger, hr-portal) carry a `user_impersonation` OAuth2 permission scope named `TERRAFORM_INSTANTIATE_<guid>` that Entra adds while instantiating the non-gallery template, and Terraform wants to remove it. `it_tools` (`azuread_application_from_template`) and prod do not show it; prod converged on a second local apply in Lab Phase 2. So a fresh create needs two applies to be clean. Drift runs on `lab` only, so tonight's drift job is not affected; the next merged PR that touches `entra/**` applies the removal to nonprod.
+  - Lab Phase 3 exit tests: 3 of 4 met; the induced-drift test remains.
+- Time taken: about 15 minutes.
+- Evidence: PRs #4 and #5 and their run IDs above; issue #3.
+- Change to the client plan, if any: (1) After every apply, re-plan and require "No changes"; if a fresh create leaves a diff, apply once more and log it, and fail if it still differs. A wave is not done until its post-apply plan is clean. (2) SAML apps built with `azuread_application` + `template_id` need a second apply (or an explicit `api` block) to drop the template's `user_impersonation` scope.
+- Accepted risks added, if any: Nonprod wave-00 holds 3 pending changes until the next `entra/**` merge.
