@@ -571,3 +571,11 @@ Current phase set to 1 at the top of this log.
 - Evidence: commit on `main`; the manual snapshot run that follows (see next entry if it fails).
 - Change to the client plan, if any: Scheduled jobs never push to a protected branch. Generated reports go to an unprotected data branch, an artifact store, or a PR raised by a GitHub App whose PRs trigger checks.
 - Accepted risks added, if any: `inventory-counts` is unprotected, so anyone with write access can rewrite count history. Acceptable for aggregate counts in the lab.
+
+## 2026-10-21, Run 1, Lab Phase 3, snapshot counts branch verified
+- What the docs said: previous entry; first run creates `inventory-counts`, later runs commit only on a change.
+- What actually happened: manual run 39635655217 green, created orphan branch `inventory-counts` with one file (`docs/inventory-counts.md`, same counts as 2026-10-17). Run 39635790446 green, fetched the branch, "Counts unchanged.", no commit. No drift.
+- Time taken: about 5 minutes.
+- Evidence: the two run IDs above; branch `inventory-counts` (1 commit).
+- Change to the client plan, if any: none beyond the previous entry.
+- Accepted risks added, if any: none.
