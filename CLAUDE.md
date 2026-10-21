@@ -22,6 +22,8 @@ Personal proof of concept of an Okta-to-Microsoft Entra ID migration run "as cod
 ## Keep README.md current
 README.md is the step-by-step guide for a layperson. Update it in the same commit whenever a lab phase or session changes status, steps, names, versions, commands, or lessons learned: the Status line, the step markers in section 6, section 7 lessons, and the "Last updated" line.
 
+In the same commit, also update docs/build-by-hand.md (a full manual build with no AI assistant) when a step, command, grant or lesson changes, and docs/porting-guide.md when a new account-specific value (ID, name, URL) enters the code.
+
 ## Hard rules (still absolute)
 - Never reference or configure the owner's company Microsoft 365 tenant (`lencioni.io`), company SharePoint, any production GitHub organization, or any client environment. Never connect the lab Okta org to `lencioni.io`. If a step would, stop and say so.
 - Never write a secret, private key, API token, client secret, or exported user JSON into the repo, CLAUDE.md, or a commit (the repo is public). Local secrets live under `~/.okta-lab/` (chmod 600); pipeline secrets live in GitHub environment secrets.

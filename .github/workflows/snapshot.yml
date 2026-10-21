@@ -1,6 +1,7 @@
 # Nightly read-only snapshot of the lab Okta org (Lab Phase 1).
 # terraform plan -detailed-exitcode against okta-inventory/: 0 = no drift (green), 2 = drift (red, plan in the summary).
-# Counts are committed to docs/inventory-counts.md; user and assignment JSON go to Azure Blob okta-exports only.
+# Counts are committed to docs/inventory-counts.md on branch inventory-counts (main is protected; the bot cannot push there).
+# User and assignment JSON go to Azure Blob okta-exports only.
 name: snapshot
 
 on:
@@ -85,14 +86,22 @@ jobs:
             --source "$RUNNER_TEMP/okta-export" --overwrite false --no-progress -o none
           rm -rf "$RUNNER_TEMP/okta-export"
 
-      - name: Commit counts if changed
+      - name: Commit counts to branch inventory-counts if changed
+        # main requires PR checks, which GITHUB_TOKEN cannot satisfy; inventory-counts is unprotected and holds only this file.
         run: |
+          cp docs/inventory-counts.md "$RUNNER_TEMP/counts.md"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch --depth=1 origin inventory-counts; then
+            git checkout -f -B inventory-counts FETCH_HEAD
+          else
+            git checkout -f --orphan inventory-counts && git rm -rfq .
+          fi
+          mkdir -p docs && cp "$RUNNER_TEMP/counts.md" docs/inventory-counts.md
           git add docs/inventory-counts.md
           if git diff --cached --quiet; then echo "Counts unchanged."; exit 0; fi
           git commit -m "snapshot: inventory counts changed (run ${GITHUB_RUN_ID})"
-          git push
+          git push origin inventory-counts
 
       - name: Remove key file
         if: always()

@@ -469,7 +469,7 @@ The production design uses four repositories, split by platform so each reposito
 - `CODEOWNERS` — Who must approve which folders.
 - `drift-log.md` — History of drift found and how each was reconciled.
 - `.gitignore` — A list of file types Git must never store, such as private keys, state files, and user data exports.
-- `inventory-counts.md` — Aggregate Okta counts (no personal data) kept in Git for trend tracking.
+- `inventory-counts.md` — Aggregate Okta counts (no personal data) kept in Git for trend tracking, on branch `inventory-counts` (the bot cannot push to protected `main`).
 - **Pull request template** — The form every pull request starts from, including the change-record number field.
 - `README.md` — The front page of a repository explaining its purpose.
 

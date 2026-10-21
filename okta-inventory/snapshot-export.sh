@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Nightly Okta export as iac-okta-reader (private key JWT, read scopes only).
-#   Counts only  -> $COUNTS_FILE (committed to Git)
+#   Counts only  -> $COUNTS_FILE (committed to Git, branch inventory-counts)
 #   Users, group members, app assignments (personal data) -> $EXPORT_DIR (uploaded to Azure Blob, never Git)
 # Env: OKTA_ORG_URL, OKTA_CLIENT_ID, OKTA_KEY_ID, OKTA_PRIVATE_KEY_FILE, COUNTS_FILE, EXPORT_DIR
 
@@ -61,7 +61,7 @@ authz=$(get /api/v1/authorizationServers)
 {
   echo "# Okta inventory counts"
   echo
-  echo "Written by \`.github/workflows/snapshot.yml\` from org \`${OKTA_ORG_URL#https://}\` as \`iac-okta-reader\`. Counts only; user and assignment data go to Azure Blob \`okta-exports\`, never to Git. Committed only when a count changes."
+  echo "Written by \`.github/workflows/snapshot.yml\` from org \`${OKTA_ORG_URL#https://}\` as \`iac-okta-reader\`. Counts only; user and assignment data go to Azure Blob \`okta-exports\`, never to Git. Committed to branch \`inventory-counts\` only when a count changes."
   echo
   echo "| Object | Count |"
   echo "|---|---|"

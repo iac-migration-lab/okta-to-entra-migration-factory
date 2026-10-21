@@ -240,7 +240,7 @@ terraform -chdir=okta-inventory plan -detailed-exitcode                  # goal:
 
 The run 1 list of what the generator gets wrong (and the fix for each) is in the findings entry "Okta inventory imported and normalized". Users and group memberships are deliberately **not** imported: they are personal data and go to Azure Blob only.
 
-**1.5 Turn on the nightly snapshot.** `.github/workflows/snapshot.yml` runs every night at 09:17 UTC (or by hand from the Actions tab). It runs `terraform plan -detailed-exitcode`: green means Okta matches the files; red means someone changed Okta. It also writes object counts to [docs/inventory-counts.md](docs/inventory-counts.md) and user/assignment JSON to Blob storage.
+**1.5 Turn on the nightly snapshot.** `.github/workflows/snapshot.yml` runs every night at 09:17 UTC (or by hand from the Actions tab). It runs `terraform plan -detailed-exitcode`: green means Okta matches the files; red means someone changed Okta. It also writes object counts to `docs/inventory-counts.md` on the branch [`inventory-counts`](https://github.com/iac-migration-lab/okta-to-entra-migration-factory/blob/inventory-counts/docs/inventory-counts.md) (not `main`, which is protected) and user/assignment JSON to Blob storage.
 
 **1.6 Prove drift detection.** Change something small by hand in the Okta Admin Console (run 1 changed the Finance group description). Run the snapshot; it should fail and show the change. Put it back.
 
@@ -413,7 +413,7 @@ These hold in the lab and should hold anywhere you use this method.
 
 ## 9. Adapting this to your own environment
 
-To run the lab on your own accounts, replace the lab values:
+To run the lab on your own accounts, follow [docs/porting-guide.md](docs/porting-guide.md): it lists every value to replace, with file paths, and the rebuild order. To build it all without an AI assistant, use [docs/build-by-hand.md](docs/build-by-hand.md). The main values:
 
 | What | Where | Lab value |
 |---|---|---|
@@ -441,6 +441,9 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 | [docs/iac-glossary.md](docs/iac-glossary.md) | Plain-language definitions of every term and acronym |
 | [docs/run-1-scope.md](docs/run-1-scope.md) | What run 1 must prove, what is deferred, and the definition of done |
 | [docs/build-phases.md](docs/build-phases.md) | Detailed steps for every lab phase |
+| [docs/build-by-hand.md](docs/build-by-hand.md) | Every command and click to build the lab yourself, no AI assistant |
+| [docs/porting-guide.md](docs/porting-guide.md) | Moving this repo to new accounts: every value to replace, rebuild order |
+| [docs/git-check-plans-info.md](docs/git-check-plans-info.md) | The four required PR checks and the branch protection command |
 | [docs/findings-log.md](docs/findings-log.md) | What actually happened, in order, with evidence (current phase at the top) |
 | [docs/migration-runbook.md](docs/migration-runbook.md) | The migration run book that each run fills in (Draft → Run 1 → Proven) |
 | [docs/permission-register.md](docs/permission-register.md) | Every grant made, with a production verdict |
@@ -458,4 +461,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-21 (Run 1, Lab Phase 3 in progress)._
+_Last updated: 2026-10-21 (Run 1, Lab Phase 3 in progress; porting and build-by-hand guides added; snapshot counts moved to branch `inventory-counts`)._

@@ -1,16 +1,5 @@
 # Okta inventory counts
 
-Written by `.github/workflows/snapshot.yml` from org `integrator-2631921.okta.com` as `iac-okta-reader`. Counts only; user and assignment data go to Azure Blob `okta-exports`, never to Git. Committed only when a count changes.
+The nightly snapshot (`.github/workflows/snapshot.yml`) writes current counts to this file on branch [`inventory-counts`](https://github.com/iac-migration-lab/okta-to-entra-migration-factory/blob/inventory-counts/docs/inventory-counts.md), not on `main`. `main` requires pull request checks, and the Actions bot cannot push past them. Each count change is a commit on that branch, so its history is the trend.
 
-| Object | Count |
-|---|---|
-| Users ACTIVE | 9 |
-| Users DEPROVISIONED | 1 |
-| Groups (custom) | 3 |
-| Apps (visible to reader) | 7 |
-| App group assignments | 8 |
-| Network zones (all) | 5 |
-| Password policies (non-system) | 1 |
-| Global session policies (non-system) | 1 |
-| Authentication policies (non-system) | 6 |
-| Authorization servers | 2 |
+Last counts kept on `main` (2026-10-17, run 38875055268) are in the Git history of this file.
