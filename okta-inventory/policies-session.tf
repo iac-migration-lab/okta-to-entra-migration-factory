@@ -1,3 +1,5 @@
+# Identity Engine global session policy. The provider still names okta_policy_signon a "Sign On Policy"
+# (the Classic term); in an OIE org it is the global session policy (docs/okta-identity-engine-decision.md).
 resource "okta_policy_signon" "iac_gsp_staff" {
   name            = "iac-gsp-staff"
   description     = "Lab staff sessions"

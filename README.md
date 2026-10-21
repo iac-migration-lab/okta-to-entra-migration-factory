@@ -115,7 +115,7 @@ Other acronyms: SAML (Security Assertion Markup Language) and OIDC (OpenID Conne
 
 | Account | Why | Notes from run 1 |
 |---|---|---|
-| Okta Integrator Free Plan org | The "source" you migrate from | Okta rejects free email providers (Outlook, Gmail); use an address on a domain you control that is **not** tied to any production Microsoft tenant. Sign in at least every 90 days or the org deactivates. |
+| Okta Integrator Free Plan org | The "source" you migrate from | Okta rejects free email providers (Outlook, Gmail); use an address on a domain you control that is **not** tied to any production Microsoft tenant. Sign in at least every 90 days or the org deactivates. The org must run Okta **Identity Engine**; the lab org does (`pipeline: idx`). Classic is not supported. |
 | Microsoft Azure account | Holds Terraform state; comes with an Entra tenant | The sign-up's "Default Directory" becomes your lab tenant. It is Pay-As-You-Go with **no spending limit**; add a budget alert on day one. |
 | Microsoft Entra ID P2 trial | Conditional Access needs P1 or P2 | Start it from Entra admin center → Licenses → Try/Buy, signed in as a work account in the tenant. Lasts 30 days, so start it only when you reach Lab Phase 2. |
 | GitHub **organization** (free) with a **public** repo | Runs the pipeline | Free private repos have no environment reviewers or environment secrets, which the pipeline needs. Keep the repo public and never commit secrets. |
@@ -417,6 +417,7 @@ To run the lab on your own accounts, replace the lab values:
 
 | What | Where | Lab value |
 |---|---|---|
+| Okta engine | Check before you start: `curl -s https://<org>.okta.com/.well-known/okta-organization` | Must return `"pipeline": "idx"` (Identity Engine). The lab supports Identity Engine only |
 | Okta org name and client ID | `okta-inventory/providers.tf`, seed script, `snapshot.yml` (`OKTA_ORG_URL`) | `integrator-2631921`, `0oa18siafpuScaofm698` |
 | Entra tenant ID | `entra/*/tenants/lab.tfvars` | `bed5d4c3-...` |
 | Storage account | every `backend.tf`, `snapshot.yml` | `stiaclabtfstate02` |
@@ -457,4 +458,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-20 (Run 1, Lab Phase 3 in progress)._
+_Last updated: 2026-10-21 (Run 1, Lab Phase 3 in progress)._

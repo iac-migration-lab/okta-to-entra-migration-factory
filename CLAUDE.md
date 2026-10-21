@@ -17,6 +17,7 @@ Personal proof of concept of an Okta-to-Microsoft Entra ID migration run "as cod
 - docs/permission-register.md: every grant made so far.
 - docs/poc-plan-identity-as-code-free-tier.md and docs/terraform-provider-analysis-okta-entra-sailpoint.md as needed.
 - docs/iac-glossary.md for plain-language term definitions.
+- docs/okta-identity-engine-decision.md: the source Okta org is Identity Engine only; use OIE resources and terms.
 
 ## Keep README.md current
 README.md is the step-by-step guide for a layperson. Update it in the same commit whenever a lab phase or session changes status, steps, names, versions, commands, or lessons learned: the Status line, the step markers in section 6, section 7 lessons, and the "Last updated" line.
@@ -36,6 +37,7 @@ The owner pre-approves any permission, scope, role, or secret in the lab account
 For every grant (scope, admin role, Graph permission, RBAC (role-based access control) role, token, secret, consent), add a row to docs/permission-register.md **at the time of the grant**: identity, what was granted, why, run, production verdict (OK / not OK / OK with changes), and what production should use instead. Broad grants are fine in the lab; an unregistered grant is not.
 
 Production target design (what the register compares against):
+- Okta: Identity Engine (OIE) orgs only; Classic is out of scope and must upgrade first (docs/okta-identity-engine-decision.md). Use OIE resources and terms (authentication policy, global session policy, authenticators), never Classic factors.
 - Okta: OAuth 2.0 service apps with private key JWT (JSON Web Token), no SSWS API tokens; read-only scopes + Read-only Administrator for inventory; `okta.apps.manage`-only cutover identity, disabled between waves.
 - Entra: `iac-reader`, `iac-planner`, `iac-applier` with GitHub Actions federated credentials, no client secrets, Graph application permissions scoped per phase, admin consent from break-glass only.
 - Break-glass excluded from every CA policy, by module and by Conftest rule. Keep this in the lab too, so we don't lock ourselves out.

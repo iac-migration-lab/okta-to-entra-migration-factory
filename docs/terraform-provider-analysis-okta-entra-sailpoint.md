@@ -29,7 +29,8 @@ Prepared for an Okta-to-Entra migration method (Identity as Code). Client-specif
 ### 2.3 Identity Engine versus Classic
 
 - Several resources are Okta Identity Engine (OIE) only, including okta_app_signon_policy (authentication policies) and risk-scoring conditions in app sign-on policy rules. The resource docs state: "not compatible with Classic orgs."
-- If the client's org is Classic, the inventory of authentication policies will be incomplete and the translation layer for Conditional Access has less to read from. Answer this before sizing.
+- If the client's org is Classic, the inventory of authentication policies will be incomplete and the translation layer for Conditional Access has less to read from.
+- **Decision (2026-10-21): Identity Engine only.** The method targets OIE orgs; a Classic org must upgrade to OIE first, as a client prerequisite outside this estimate. Check at intake with `/.well-known/okta-organization` (`"pipeline": "idx"` = OIE). Object-by-object mapping: docs/okta-identity-engine-decision.md.
 
 ### 2.4 Import and configuration generation
 
@@ -142,12 +143,12 @@ Prepared for an Okta-to-Entra migration method (Identity as Code). Client-specif
 - "Terraform is the declarative engine for Okta inventory and Entra ID configuration. The first-party providers cover the core objects: applications, groups, Conditional Access, roles, PIM, access packages."
 - "Four Entra objects on the migration critical path are not in the mainstream provider: domain federation, Staged Rollout, the authentication methods policy, and SAML claims for enterprise apps. We handle those through Microsoft's Graph provider, which Microsoft labels preview, or through PowerShell, in a separate isolated state. We are telling you this now so it is not a surprise in the pilot."
 - **"Terraform is the declarative engine for Okta (read) and Entra ID (write). SailPoint is configuration as code through SailPoint's native SP-Config tooling, in the same Git and change pipeline, not through Terraform."** Then: "SailPoint does not have a supported Terraform provider. SailPoint's own tooling covers sources and provisioning policies, which is exactly what this program needs. Roles and access profiles remain portal-managed."
-- "Before we can size the Okta inventory, we need to know whether the org is Identity Engine or Classic, whether API access is IP-restricted, and whether DynamicScale is licensed."
+- "This method is built for Okta Identity Engine. We confirm your org is on Identity Engine before sizing; if it is still on Classic, the upgrade to Identity Engine is a prerequisite you plan first. We also need to know whether API access is IP-restricted and whether DynamicScale is licensed."
 - "For the SailPoint workstream we need to know whether Configuration Hub is enabled on your tenants, whether a non-prod ISC tenant exists that mirrors prod, and which connector types (SCIM 2.0, Web Services, or others) the migrating applications will use."
 
 ## 9. Open questions to close before the proposal
 
-- Okta engine type (OIE or Classic) and network-zone restriction on the management API.
+- Confirm the Okta org is Identity Engine (decision: OIE only; Classic must upgrade first). Network-zone restriction on the management API.
 - Okta rate-limit tier and whether DynamicScale is licensed.
 - SailPoint: whether Configuration Hub is enabled, whether a non-prod ISC tenant exists, and the connector types planned for the migrating applications (secrets handling differs per connector since SP-Config strips credentials).
 - Number of Entra Staged Rollout groups the wave plan assumes (limit is 10 per feature).

@@ -116,7 +116,7 @@ Two ideas carry most of the program, and the rest of the glossary builds on them
 
 **Group and group rule** — A group is a named set of users. A group rule adds people to a group automatically from their attributes, such as department. In a hybrid organization most groups are synced from on-premises Active Directory, so they already exist in Entra and are matched rather than recreated.
 
-**Identity Engine (OIE) / Classic Engine** — Okta's two generations of its sign-in engine. Identity Engine (OIE) is the newer one and organizes sign-in rules as "authentication policies"; Classic uses older "sign-on policies." *In this program:* confirm early which one the source org runs, because it changes which policy objects the inventory must read. The lab org is Identity Engine.
+**Identity Engine (OIE) / Classic Engine** — Okta's two generations of its sign-in engine. Identity Engine (OIE) is the newer one and organizes sign-in rules as "authentication policies"; Classic uses older "sign-on policies." *In this program:* **Identity Engine only.** The method, inventory and translation are built for OIE; a Classic org must upgrade to OIE before migration starts. Check with the org's `/.well-known/okta-organization` page (`"pipeline": "idx"` means OIE). The lab org is Identity Engine. See docs/okta-identity-engine-decision.md.
 
 **Identity Provider (IdP)** — The system that checks who a person is and vouches for them to applications. Okta is the IdP today; Entra ID will be. An application that trusts an IdP never sees the password; it receives a signed statement that the person is authenticated.
 
@@ -134,7 +134,7 @@ Two ideas carry most of the program, and the rest of the glossary builds on them
 
 **Okta service app (API service application)** — A non-human identity registered in Okta so an automated job can call the API. It proves itself with a private key rather than a password. *In this program:* the inventory app reads only; the cutover app can change app assignments only, and is switched off between waves.
 
-**Policies (global session, authentication, password, MFA enrollment)** — Okta's rules for how long a session lasts, what proof of identity each application requires, password rules, and which multi-factor methods users must register. Each is translated into Entra's equivalent.
+**Policies (global session, authentication, password, authenticator enrollment)** — Okta Identity Engine's rules for how long a session lasts, what proof of identity each application requires, password rules, and which authenticators (sign-in methods) users must register. Each is translated into Entra's equivalent. Classic orgs used "sign-on" and "MFA enrollment" policies built on factors; this program does not use them.
 
 **Private key JWT (JSON Web Token)** — A way for a service app to prove its identity by signing a short-lived token with a private key it holds, instead of sending a password or a long-lived API token. **SSWS API token** is Okta's older static token type, which the production design does not use (the lab used one to seed the org; see the permission register).
 

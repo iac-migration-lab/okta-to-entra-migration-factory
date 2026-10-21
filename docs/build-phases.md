@@ -48,11 +48,12 @@ Goal: a realistic small Okta org, a read-only Terraform inventory of it, and a n
    - 1 OIDC (OpenID Connect) web app.
    - 1 app with group-based assignment and attribute statements.
    - 1 preconfigured OIN (Okta Integration Network) app, to reproduce the known `okta_app_saml` drift noise.
-   - 1 network zone, 1 password policy, 1 global session policy, 1 authentication policy (confirms the org is Identity Engine), 1 custom authorization server.
+   - 1 network zone, 1 password policy, 1 global session policy, 1 authentication policy, 1 custom authorization server.
+   - Before seeding, confirm the org is Identity Engine: `curl -s https://<org>.okta.com/.well-known/okta-organization` returns `"pipeline": "idx"`. The method is OIE only (docs/okta-identity-engine-decision.md); stop if it returns Classic.
    - Record the object counts in the findings log.
 2. **Create the read-only service app `iac-okta-reader`.** API Services app, private key JWT (JSON Web Token), scopes `okta.apps.read`, `okta.users.read`, `okta.groups.read`, `okta.policies.read`, `okta.authorizationServers.read`, `okta.idps.read`, `okta.schemas.read`, role Read-only Administrator. State the least-privilege block first. The private key never touches the repo; it goes to a GitHub environment secret.
 3. **Provider configuration.** `okta-inventory/providers.tf`: provider `okta/okta` pinned `~> 7.0`, org `integrator-2631921`, base URL `okta.com`, auth with `client_id`, `private_key_id`, `private_key`, `scopes`; `max_api_capacity = 50`; default backoff.
-4. **Import.** One `import` block per object, then `terraform plan -generate-config-out=generated.tf` (experimental; output needs cleanup).
+4. **Import.** Use the OIE resources: `okta_policy_signon` is the global session policy, `okta_app_signon_policy` the authentication policy; run 2 adds `okta_authenticator` and `okta_policy_mfa` with `is_oie = true`. Never `okta_factor`. One `import` block per object, then `terraform plan -generate-config-out=generated.tf` (experimental; output needs cleanup).
 5. **Normalize** `generated.tf` into modules. Time each app; that per-app time is the main number for the client estimate. List every attribute the generator got wrong.
 6. **Snapshot workflow** `.github/workflows/snapshot.yml`: schedule plus manual run; `terraform plan -detailed-exitcode`; aggregate counts to `docs/inventory-counts.md`; full user and assignment JSON to Azure Blob only.
 7. **Drift test.** Change something by hand in the Admin Console; confirm the next snapshot reports it.

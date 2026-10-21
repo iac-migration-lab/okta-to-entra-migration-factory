@@ -27,6 +27,7 @@ Nothing is deleted. Deferred items are marked in docs/build-phases.md and can be
 |---|---|
 | Lab email (Azure, Entra, budget alerts) | `la-migration-lab@outlook.com` |
 | Okta org | `integrator-2631921` (`https://integrator-2631921.okta.com`, Admin Console `https://integrator-2631921-admin.okta.com`), admin `mark@lencioni.io` |
+| Okta engine | Identity Engine (OIE): `/.well-known/okta-organization` returns `"pipeline": "idx"` (2026-10-21). OIE only; Classic out of scope (docs/okta-identity-engine-decision.md) |
 | Okta seed | docs/okta-seed-spec.md, `okta-inventory/seed/seed-okta-org.sh`; run 1 uses the SSWS token `iac-run1-seed` (permission register #4, revoke at end of run 1) |
 | SAML test SP (service provider) | `https://sptest.iamshowcase.com` (ACS `https://sptest.iamshowcase.com/acs`, audience `IAMShowcase`) |
 | OIDC tester | `https://oidcdebugger.com/debug` (UNVERIFIED: still running) |

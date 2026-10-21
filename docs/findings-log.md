@@ -548,3 +548,15 @@ Current phase set to 1 at the top of this log.
 - Evidence: `docs/evidence/2026-10-20-laadvisory247-p2-cancelled.png` (Your products: Microsoft Entra ID P2, 25 purchased, 1 assigned, status Disabled; Entra ID Free stays Active; billing account `L&A Advisory` (MCA (Microsoft Customer Agreement))).
 - Change to the client plan, if any: A stray tenant made by a commerce flow keeps the card used at checkout; Microsoft requires a replacement before removing the last one. Use a dedicated payment card (or invoice billing) for any lab or POC (proof of concept) purchase.
 - Accepted risks added, if any: The `LAAdvisory247` P2 risk from 2026-10-16 is closed. New, small: the owner's card stays on file in `LAAdvisory247` with no active subscription. UNVERIFIED: a disabled subscription is deleted by Microsoft after a retention period, after which the tenant holds no products at all. Check the tenant's billing once after 2026-11-15.
+
+## 2026-10-21, Run 1, Lab Phase 3, decision: Okta Identity Engine only (Classic out of scope)
+- What the docs said: provider analysis section 2.3 and section 9 left the engine open ("confirm OIE or Classic before sizing"); the glossary said "confirm early"; build-phases treated the authentication policy as the OIE check.
+- What actually happened:
+  - Owner decided the solution targets Okta Identity Engine (OIE) only. Classic orgs must upgrade to OIE first, as a client prerequisite outside the method and its estimate.
+  - Checked the lab org: `curl -s https://integrator-2631921.okta.com/.well-known/okta-organization` returned `"pipeline": "idx"` (OIE).
+  - Checked the pinned provider (okta 7.0.0, `terraform providers schema -json`): `okta_app_signon_policy`, `okta_authenticator`, `okta_policy_profile_enrollment` carry the "only available as a part of the Identity Engine" warning; `okta_policy_mfa` has an `is_oie` argument; `okta_factor` and Classic MFA enrollment are not used.
+  - New decision record `docs/okta-identity-engine-decision.md` (check command, OIE object to Terraform resource to Entra target mapping, the `okta_policy_signon` naming trap). Updated: provider analysis 2.3, 8, 9; glossary (engine entry, policies entry); run-1-scope facts; runbook prerequisites; build-phases Lab Phase 1 steps 1 and 4; POC plan; README (requirements row, adapting table); CLAUDE.md (read-first list, production target design); comment in `okta-inventory/policies-session.tf`.
+- Time taken: about 20 minutes.
+- Evidence: the `/.well-known/okta-organization` response above; provider schema output.
+- Change to the client plan, if any: (1) Intake check: run the `/.well-known/okta-organization` check before sizing; a Classic result stops the engagement until the client upgrades. (2) Run 2 inventory adds `okta_authenticator` and `okta_policy_mfa` (`is_oie = true`) so authenticators and the enrollment policy feed the Entra authentication methods translation; the reader may need an authenticators read scope (UNVERIFIED), registered when granted.
+- Accepted risks added, if any: The `"pipeline": "v1"` = Classic reading is from Okta's convention, not tested on a Classic org in this lab (UNVERIFIED).

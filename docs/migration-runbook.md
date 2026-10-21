@@ -8,6 +8,7 @@ Status legend: **Draft** (not run yet), **Run 1** (worked once), **Proven** (wor
 | Step | Status | Notes |
 |---|---|---|
 | Source org reachable, admin with MFA (multi-factor authentication) | Run 1 | Okta Integrator Free org; read via `iac-okta-reader` |
+| Source org is Okta Identity Engine (OIE) | Run 1 | `curl -s https://<org>.okta.com/.well-known/okta-organization`: `"pipeline": "idx"` = OIE. Classic is out of scope; the client upgrades to OIE first. docs/okta-identity-engine-decision.md |
 | Target tenant with break-glass account and `bg-ca-exclusion` group | Run 1 | `bg-admin-01`, group `bg-ca-exclusion` (register #14, #15). Read every hand-built CA policy back for the exclusion: two of three missed it (findings 2026-10-16 "brownfield imported, plan clean") |
 | Entra ID P1/P2 licensing for CA (Conditional Access) | Run 1 | P2 trial 2026-10-16 to 2026-11-16. Start it from Entra admin center → Licenses → Try/Buy as a work account in the tenant, not Microsoft 365 checkout |
 | GitHub repo, environments `nonprod` and `prod`, reviewers | Run 1 | Public repo on the free plan; `prod` has a required reviewer, self-review blocked, branch policy `main` (findings 2026-10-18 Lab Phase 3) |
