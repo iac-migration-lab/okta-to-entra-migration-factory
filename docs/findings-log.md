@@ -598,3 +598,11 @@ Current phase set to 1 at the top of this log.
 - Evidence: run 39914613389 (change-gate failure, applies skipped).
 - Change to the client plan, if any: path filters on the apply workflow exclude documentation, so README edits never wait on a change ticket or a prod approval.
 - Accepted risks added, if any: a `.md` file under `entra/` will never trigger an apply; only `.tf`, `.tfvars` and `.rego` changes matter there.
+
+## 2026-10-23, Run 1, Lab Phase 3, personal repo copy deleted
+- What the docs said: `docs/run-1-scope.md` section 1: `mlencioni/okta-to-entra-migration-factory` is not used; owner deletes it.
+- What actually happened: the copy's nightly snapshot had failed since 2026-10-19 (no `okta-read` variables there). Owner turned off its Actions, synced it once, then deleted the repo on 2026-10-23. Local remote `factory` removed. The only repo is `iac-migration-lab/okta-to-entra-migration-factory`.
+- Time taken: about 5 minutes.
+- Evidence: `git remote -v` shows only `origin`.
+- Change to the client plan, if any: none.
+- Accepted risks added, if any: none.
