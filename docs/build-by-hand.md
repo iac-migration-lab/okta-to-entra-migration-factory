@@ -491,7 +491,7 @@ From here, every change to `entra/` goes through a PR like this one.
 | Rule-breaking PR | Valid change ticket; in `entra/waves/wave-00/ca-policies.tf` set `excluded_groups = []` | Both `plan` checks fail on "CA policy must exclude bg-ca-exclusion"; merge blocked. Close unmerged |
 | PR without a change ticket | Comment-only change; no `Change:` line | `change-gate / check` fails; merge blocked. Close unmerged |
 | Compliant PR | Part 12 | nonprod applies on merge; prod only after approval |
-| Induced drift | After a clean nightly drift run (10:41 UTC), change one prod object in the portal (for example the description of group `iac-finance`; from the CLI, `az rest --method PATCH --url https://graph.microsoft.com/v1.0/groups/<id> --body '{"description":"..."}'`), then `gh workflow run drift.yml` | Exactly one issue labeled `drift` opens. Undo the portal change; the next run comments or stays clean |
+| Induced drift | After a clean nightly drift run (10:41 UTC), change one prod object in the portal (for example the description of group `iac-finance`; from the CLI, `az rest --method PATCH --url https://graph.microsoft.com/v1.0/groups/<id> --body '{"description":"..."}'`), then `gh workflow run drift.yml` | Exactly one issue labeled `drift` opens; a second run comments on it. Put the value back by PR (change issue plus a `.tf` change, even a comment, so the apply runs), approve prod, run the drift job again: green. Then close the drift issue |
 
 Drift is never fixed automatically. Either put the portal change back, or codify it in a PR.
 

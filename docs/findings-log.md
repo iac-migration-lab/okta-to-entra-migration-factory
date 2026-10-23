@@ -1,5 +1,5 @@
 Current run: 1 (Implementation Phase 0)
-Current lab phase: 3 (Lab Phase 2 carry-overs done)
+Current lab phase: 4 (Lab Phase 3 closed 2026-10-23)
 
 # Findings Log
 
@@ -639,3 +639,15 @@ Current phase set to 1 at the top of this log.
 - Evidence: runs 40012303125 and 40012452732; issue #10 (1 comment).
 - Change to the client plan, if any: none. The drift job opens one issue and then appends to it, so a noisy object does not flood the issue list.
 - Accepted risks added, if any: prod `iac-finance` description drifted until reconciled by PR (lab only, no access impact).
+
+## 2026-10-23, Run 1, Lab Phase 3, induced drift reconciled by PR; Lab Phase 3 closed
+- What the docs said: `drift.yml` header and build-by-hand part 14: drift is never reverted automatically; reconcile by PR (codify the portal change or put it back). From Lab Phase 3 on, migrated objects change only through the pipeline.
+- What actually happened:
+  - Change issue #11 (`change:scheduled`, 48-hour window). PR #12 touched only a comment in `entra/platform/groups.tf`, because `apply.yml` runs only when an `entra/**` file other than Markdown changes. Checks green: `plan (lab)` showed `~ description = "...INDUCED DRIFT..." -> "Finance (Okta group Finance)"`, `Plan: 0 to add, 1 to change, 0 to destroy`; `plan (lab-np)` no changes. Plan run 40032856011.
+  - Merged; apply run 40032967722: change gate pass, nonprod no changes, prod waited for the owner's approval, then `Apply complete! Resources: 0 added, 1 changed, 0 destroyed`; post-apply plan "No changes". Graph read afterwards: description "Finance (Okta group Finance)".
+  - Drift run 40033207277 (manual) green; no new comment on #10. Closed #10, and #11 as `change:closed`.
+  - **Lab Phase 3 closed.** Run 1 definition of done items 6 and 7 met.
+- Time taken: about 10 minutes, plus the owner's approval.
+- Evidence: issue #11, PR #12, runs 40032856011, 40032967722, 40033207277; issue #10 closed.
+- Change to the client plan, if any: putting a portal change back needs a code change to start the apply. A comment-only PR works but is a workaround; run 2 should add a reconcile path (for example `workflow_dispatch` on `apply.yml` with a change issue input) so a revert needs no dummy commit.
+- Accepted risks added, if any: none.
