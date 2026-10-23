@@ -459,8 +459,8 @@ From here, every change to `entra/` goes through a PR like this one.
    mk() { az ad user create --display-name "$1" --user-principal-name $2@$D --password "$P" --force-change-password-next-sign-in false >/dev/null
           az rest --method PATCH --url https://graph.microsoft.com/v1.0/users/$2@$D --body "{\"department\":\"$3\",\"jobTitle\":\"$4\",\"employeeId\":\"$5\"}"; }
    mk "Ada Reyes" ada.reyes IT "IT Manager" 1001
-   mk "Cara Lind" cara.lind CustServ "Support Lead" 1002
-   mk "Gus Tanaka" gus.tanaka Finance "Accountant" 1003
+   mk "Cara Lind" cara.lind IT "Service Desk Analyst" 1003
+   mk "Gus Tanaka" gus.tanaka Finance "Finance Manager" 3001
    add() { az ad group member add --group $1 --member-id $(az ad user show --id $2@$D --query id -o tsv); }
    add iac-it ada.reyes; add iac-it cara.lind; add iac-custserv cara.lind; add iac-finance gus.tanaka
    ```

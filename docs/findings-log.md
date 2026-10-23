@@ -579,3 +579,14 @@ Current phase set to 1 at the top of this log.
 - Evidence: the two run IDs above; branch `inventory-counts` (1 commit).
 - Change to the client plan, if any: none beyond the previous entry.
 - Accepted risks added, if any: none.
+
+## 2026-10-23, Run 1, Lab Phase 3, folder READMEs expanded
+- What the docs said: folder READMEs were 5 to 23 lines each, listing files with little on purpose, flow or how to change things. `entra/`, `.github/` and `docs/` had none.
+- What actually happened:
+  - Rewrote the READMEs for `okta-inventory/`, `entra/legacy/`, `entra/platform/`, `entra/waves/`, `policy/`, `azure/bootstrap/` and `sailpoint/`. Each now covers: what the folder is for, where it sits in the flow, every file, who runs it and as which identity, how to run it, how to change it, and lab 1 lessons.
+  - Added `entra/README.md` (the three roots, prod and nonprod copies, state keys, identities, guard rails) and `docs/README.md` (which document to open when). The pipeline guide is `.github/pipeline-guide.md`, not `.github/README.md`: GitHub shows a `.github/README.md` on the repo front page in place of the root README.
+  - Found while checking: `docs/build-by-hand.md` part 13 gave Cara and Gus the wrong department, titles and employee IDs. Corrected to the live Entra values, which match `docs/okta-seed-spec.md` (Cara: IT, Service Desk Analyst, 1003; Gus: Finance, Finance Manager, 3001).
+- Time taken: about 45 minutes.
+- Evidence: this commit; a relative-link check of every edited README found 0 broken links.
+- Change to the client plan, if any: none.
+- Accepted risks added, if any: none.

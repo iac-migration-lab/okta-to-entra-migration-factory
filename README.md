@@ -148,6 +148,8 @@ Run 1 took roughly: Lab Phase 0 one evening, Lab Phase 1 two evenings, Lab Phase
 | `docs/` | The plan, run book, findings log, permission register, glossary, and evidence screenshots. See [section 10](#10-where-to-find-more). |
 | `lab-tools/` | Local copies of the pinned tools. Git-ignored; you create it in Step 0.2. |
 
+Every folder has its own README that explains what it is for, each file in it, how to run it and how to change it: [okta-inventory](okta-inventory/README.md), [entra](entra/README.md) ([legacy](entra/legacy/README.md), [platform](entra/platform/README.md), [waves](entra/waves/README.md)), [policy](policy/README.md), [azure/bootstrap](azure/bootstrap/README.md), [sailpoint](sailpoint/README.md), [.github](.github/pipeline-guide.md), [docs](docs/README.md).
+
 Each Entra folder is a separate Terraform "root module" with its own state file, so a mistake in one cannot affect the others. Apply order: `legacy` (import only), then `platform`, then `waves/*`.
 
 ---
@@ -453,7 +455,7 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 | [docs/tool-install.md](docs/tool-install.md) | Tool install and version check |
 | [docs/poc-plan-identity-as-code-free-tier.md](docs/poc-plan-identity-as-code-free-tier.md) | The original lab plan |
 | [docs/terraform-provider-analysis-okta-entra-sailpoint.md](docs/terraform-provider-analysis-okta-entra-sailpoint.md) | What each Terraform provider can and cannot manage |
-| Folder READMEs (`okta-inventory/`, `entra/*/`, `policy/`, `sailpoint/`) | What each folder holds and how to run it |
+| Folder READMEs (`okta-inventory/`, `entra/`, `entra/*/`, `policy/`, `azure/bootstrap/`, `sailpoint/`, `docs/`; `.github/pipeline-guide.md`) | What each folder is for, file by file, how to run it and how to change it |
 
 ---
 
@@ -461,4 +463,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-21 (Run 1, Lab Phase 3 in progress; porting and build-by-hand guides added; snapshot counts moved to branch `inventory-counts`)._
+_Last updated: 2026-10-23 (Run 1, Lab Phase 3 in progress; folder READMEs expanded, READMEs added for `entra/`, `.github/` and `docs/`)._
