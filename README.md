@@ -126,7 +126,7 @@ Other acronyms: SAML (Security Assertion Markup Language) and OIDC (OpenID Conne
 About $0 to a few cents a month for state storage. The lab uses a $10 monthly budget alert. The P2 trial is free for 30 days.
 
 ### Computer
-Instructions cover an Apple Silicon Mac, Linux (Debian 12 or Ubuntu 24.04) and Windows 10 or 11 through WSL2 (Windows Subsystem for Linux, which runs Ubuntu inside Windows): see [docs/tool-install.md](docs/tool-install.md). Allow about 600 MB for tools.
+Instructions cover an Apple Silicon Mac, Linux (Debian 12 or Ubuntu 24.04) and Windows 10 or 11 through WSL2 (Windows Subsystem for Linux, which runs Ubuntu inside Windows): see [docs/tool-install.md](docs/tool-install.md). Allow about 600 MB for tools. To keep the lab off your Mac itself, [docs/workstation-vm.md](docs/workstation-vm.md) builds an Ubuntu VM (virtual machine) in UTM for it.
 
 ### Time
 Run 1 took roughly: Lab Phase 0 one evening, Lab Phase 1 two evenings, Lab Phase 2 two to three evenings.
@@ -147,8 +147,9 @@ Run 1 took roughly: Lab Phase 0 one evening, Lab Phase 1 two evenings, Lab Phase
 | `.github/workflows/` | Automation: `snapshot.yml` (nightly Okta check), `plan.yml` (every PR), `apply.yml` (on merge), `drift.yml` (nightly Entra check), `change-gate.yml` (shared). Helper scripts are in `.github/scripts/`. |
 | `docs/` | The plan, run book, findings log, permission register, glossary, and evidence screenshots. See [section 10](#10-where-to-find-more). |
 | `lab-tools/` | Local copies of the pinned tools. Git-ignored; you create it in Step 0.2. |
+| `scripts/` | Machine setup: `bootstrap-iac-lab-vm.sh` for the optional Ubuntu workstation VM. Not used by the pipeline. |
 
-Every folder has its own README that explains what it is for, each file in it, how to run it and how to change it: [okta-inventory](okta-inventory/README.md), [entra](entra/README.md) ([legacy](entra/legacy/README.md), [platform](entra/platform/README.md), [waves](entra/waves/README.md)), [policy](policy/README.md), [azure/bootstrap](azure/bootstrap/README.md), [sailpoint](sailpoint/README.md), [.github](.github/pipeline-guide.md), [docs](docs/README.md).
+Every folder has its own README that explains what it is for, each file in it, how to run it and how to change it: [okta-inventory](okta-inventory/README.md), [entra](entra/README.md) ([legacy](entra/legacy/README.md), [platform](entra/platform/README.md), [waves](entra/waves/README.md)), [policy](policy/README.md), [azure/bootstrap](azure/bootstrap/README.md), [sailpoint](sailpoint/README.md), [scripts](scripts/README.md), [.github](.github/pipeline-guide.md), [docs](docs/README.md).
 
 Each Entra folder is a separate Terraform "root module" with its own state file, so a mistake in one cannot affect the others. Apply order: `legacy` (import only), then `platform`, then `waves/*`.
 
@@ -454,9 +455,10 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 | [docs/lab-naming.md](docs/lab-naming.md) | Every lab account and resource name |
 | [docs/okta-seed-spec.md](docs/okta-seed-spec.md) | The fake Okta estate |
 | [docs/tool-install.md](docs/tool-install.md) | Tool install and version check |
+| [docs/workstation-vm.md](docs/workstation-vm.md) | Optional Ubuntu workstation VM (virtual machine) in UTM on the Mac, with its bootstrap script in `scripts/` |
 | [docs/poc-plan-identity-as-code-free-tier.md](docs/poc-plan-identity-as-code-free-tier.md) | The original lab plan |
 | [docs/terraform-provider-analysis-okta-entra-sailpoint.md](docs/terraform-provider-analysis-okta-entra-sailpoint.md) | What each Terraform provider can and cannot manage |
-| Folder READMEs (`okta-inventory/`, `entra/`, `entra/*/`, `policy/`, `azure/bootstrap/`, `sailpoint/`, `docs/`; `.github/pipeline-guide.md`) | What each folder is for, file by file, how to run it and how to change it |
+| Folder READMEs (`okta-inventory/`, `entra/`, `entra/*/`, `policy/`, `azure/bootstrap/`, `sailpoint/`, `scripts/`, `docs/`; `.github/pipeline-guide.md`) | What each folder is for, file by file, how to run it and how to change it |
 
 ---
 
@@ -464,4 +466,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-23 (Run 1, Lab Phase 3 in progress; folder READMEs expanded; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added)._
+_Last updated: 2026-10-23 (Run 1, Lab Phase 3 in progress; folder READMEs expanded; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._

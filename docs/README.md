@@ -25,6 +25,7 @@ Three files are records kept as the lab runs. They are the evidence for every de
 | [porting-guide.md](porting-guide.md) | Move this repo to new accounts: every value to replace, and the rebuild order |
 | [build-phases.md](build-phases.md) | Follow the detailed steps of one lab phase |
 | [tool-install.md](tool-install.md) | Install the pinned tools (Terraform, Conftest, Azure CLI and others) with checksums |
+| [workstation-vm.md](workstation-vm.md) | Build an optional Ubuntu workstation VM (virtual machine) in UTM on the Mac: SSH with a 1Password key, firewall, one-repo GitHub token, no cloud credentials |
 | [../.github/pipeline-guide.md](../.github/pipeline-guide.md) | See what each workflow and pipeline script does, and the GitHub settings they depend on |
 | [git-check-plans-info.md](git-check-plans-info.md) | Understand the four required pull request checks, or reset branch protection with `gh api` |
 | [change-gate-design.md](change-gate-design.md) | See how the change-ticket gate works and how it would connect to ServiceNow or Jira |

@@ -107,7 +107,7 @@ echo "git: $(git --version)"
 
 ## Linux (Debian or Ubuntu)
 
-For Debian 12 (`bookworm`) and Ubuntu 24.04 (`noble`), on Intel/AMD (`x86_64`) or Arm (`aarch64`) processors. Ubuntu 24.04 is what the GitHub Actions runners use, so it is the closest match to the pipeline. Windows users follow these same steps inside WSL2 ([Windows](#windows-wsl2) first).
+For Debian 12 (`bookworm`) and Ubuntu 24.04 (`noble`), on Intel/AMD (`x86_64`) or Arm (`aarch64`) processors. For a dedicated Ubuntu VM (virtual machine) in UTM on the Mac there is also a one-shot alternative, [scripts/bootstrap-iac-lab-vm.sh](../scripts/bootstrap-iac-lab-vm.sh), described in [workstation-vm.md](workstation-vm.md); it installs the same versions system-wide. When a pinned version changes here, change it in that script in the same commit. Ubuntu 24.04 is what the GitHub Actions runners use, so it is the closest match to the pipeline. Windows users follow these same steps inside WSL2 ([Windows](#windows-wsl2) first).
 
 ### Step 1: Clone the repo
 ```bash

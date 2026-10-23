@@ -61,6 +61,8 @@ curl -s https://<okta-org>.okta.com/.well-known/okta-organization | python3 -m j
 
 ## 2. Tools
 
+Optional: to work from a separate Linux VM (virtual machine) instead of the Mac itself, build it first with [workstation-vm.md](workstation-vm.md), then continue here inside the VM.
+
 Paste the install block for your machine from [tool-install.md](tool-install.md): Apple Silicon Mac, Linux (Debian or Ubuntu), or Windows through WSL2 (Windows Subsystem for Linux). Each block checksum-verifies every download and puts it in `lab-tools/` (git-ignored). On Linux and Windows the GitHub CLI (command-line interface) and `jq` are part of the block; on a Mac, also run:
 
 ```bash

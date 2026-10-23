@@ -20,4 +20,6 @@ Prefix `iac` (Infrastructure as Code) everywhere. Dashes where the platform allo
 | Entra app registration (apply) | `iac-applier` | Fixed by CLAUDE.md. |
 | Okta service app (inventory) | `iac-okta-reader` | Read-only scopes + Read-only Administrator role. |
 | Okta service app (cutover) | `iac-okta-cutover` | `okta.apps.manage` only; deactivated between waves. |
+| Workstation VM | `iac-lab-ubu01` | Optional. Ubuntu Server 24.04 arm64 in UTM on the Mac, user `iac-lab`, UTM Shared Network (`192.168.64.x`). Built 2026-10-23. See [workstation-vm.md](workstation-vm.md). |
+| Workstation GitHub token | `iac-lab-ubu01` | Fine-grained PAT (personal access token), this repo only, Contents and Pull requests write, 30-day expiry. Value in the password manager only. |
 | Break-glass account | `bg-admin-01@lamigrationlaboutlook.onmicrosoft.com` | Display name `Break Glass 01`. Cloud-only Global Administrator, excluded from every CA (Conditional Access) policy. Group: `bg-ca-exclusion`. |
