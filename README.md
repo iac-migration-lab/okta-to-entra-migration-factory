@@ -4,7 +4,7 @@ Move applications from **Okta** to **Microsoft Entra ID** "as code": every app, 
 
 This repo is a working proof of concept, built on free accounts with dummy data. It is also a step-by-step guide you can follow to run the same migration on your own lab, and later adapt to a real environment.
 
-> **Status (updated 2026-10-20):** Run 1, Lab Phase 3 in progress. Done: Okta discovery and nightly snapshot (green five nights), Entra brownfield import, 4 SAML apps and 1 OIDC app translated, the pipeline built, and the first pull request merged: nonprod built entirely through the pipeline (41 objects), and prod applied after approval with no changes. Lab Phase 3 exit tests 3 of 4 passed (unsafe PR blocked, PR without a change ticket blocked); the pipeline now re-plans after every apply and requires a clean plan. OIDC sign-in (including an unassigned user blocked) and the claims experiment are done, so Lab Phase 2 has nothing left. Next: the induced-drift test. Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
+> **Status (updated 2026-10-23):** Run 1, Lab Phase 3 exit tests 4 of 4 passed. Done: Okta discovery and nightly snapshot, Entra brownfield import, 4 SAML apps and 1 OIDC app translated, the pipeline built (nonprod on merge, prod after approval), unsafe PR and PR without a change ticket blocked, and an induced Entra drift opened exactly one issue (#10). Lab Phase 2 has nothing left. Next: reconcile the induced drift through a PR, then Lab Phase 4 (cutover wave and rollback). Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
 
 > **Lab only.** Personal free accounts, fictional users, nothing to do with any company or client. Do not point this repo at a production tenant without reading [Adapting this to your own environment](#adapting-this-to-your-own-environment).
 
@@ -340,7 +340,7 @@ Graph permissions: reader and planner `Directory.Read.All`, `Policy.Read.All`; a
 
 **3.6 Branch protection on `main`:** require the checks `policy-selftest`, `change-gate / check`, `plan (lab-np)`, `plan (lab)`; require a PR but **0 approvals** (you cannot approve your own PR). What each check does, and the `gh api` command to set it: [docs/git-check-plans-info.md](docs/git-check-plans-info.md).
 
-**Exit tests:** a rule-breaking PR fails (✅ 2026-10-20, PR #4); a PR without a change ticket fails (✅ 2026-10-20, PR #5); a compliant PR applies to nonprod on merge and to prod only after approval (✅ 2026-10-20, PR #2); one induced drift opens exactly one issue.
+**Exit tests:** a rule-breaking PR fails (✅ 2026-10-20, PR #4); a PR without a change ticket fails (✅ 2026-10-20, PR #5); a compliant PR applies to nonprod on merge and to prod only after approval (✅ 2026-10-20, PR #2); one induced drift opens exactly one issue (✅ 2026-10-23, issue #10; a second run commented on it instead of opening another).
 
 ---
 
@@ -397,6 +397,7 @@ The biggest surprises from run 1. Full details and evidence in [docs/findings-lo
 | NameID | Okta used `@iaclab.example` logins, which cannot be Entra user names | The user identifier sent to apps changes on migration; tell app owners |
 | Approvals | One person cannot approve their own PR or their own prod deployment; a "Require approvals" box left on blocked the merge | One-person lab: 0 PR approvals, self-review off. Production: name two reviewers before the first wave |
 | Claims | A portal edit to claims is invisible unless the claims are in code; the portal can also show the wrong claims | Put every app's claims in code with the msgraph custom claims policy; review the diff after any portal touch |
+| Drift | The drift job opens one issue, then comments on it for every later run until it is closed | Close the drift issue only after the reconcile PR applies and a drift run is clean |
 
 ---
 
@@ -466,4 +467,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-23 (Run 1, Lab Phase 3 in progress; folder READMEs expanded; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._
+_Last updated: 2026-10-23 (Run 1, Lab Phase 3 exit tests 4 of 4 passed (induced drift, issue #10); folder READMEs expanded; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._

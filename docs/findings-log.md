@@ -625,3 +625,17 @@ Current phase set to 1 at the top of this log.
 - Evidence: test output in this session; versions above.
 - Change to the client plan, if any: engineers on Windows use WSL2 with Ubuntu 24.04 (same as the pipeline runners), never native PowerShell for the repo scripts. Pasted install blocks keep package managers off standard input.
 - Accepted risks added, if any: not tested on Debian x86_64 or on a real Windows WSL2 install; the `wslview` browser hand-off for `az login` is UNVERIFIED.
+
+## 2026-10-23, Run 1, Lab Phase 3, exit test: induced drift opened exactly one issue
+- What the docs said: Lab Phase 3 exit test "one induced drift opens exactly one issue" (build-phases Phase 3 exit; build-by-hand part 14). `drift.yml` plans prod as `iac-reader`; exit code 2 opens an issue labeled `drift`, or comments on the open one.
+- What actually happened:
+  - Baseline: scheduled prod drift runs green 2026-10-21, -22, -23. No `drift` issues existed.
+  - Induced drift 19:33 UTC as the owner's CLI login (lab tenant `bed5d4c3-...`): description of prod group `iac-finance` (`4eef6caa-...`) set to "Finance (Okta group Finance) - INDUCED DRIFT exit test 2026-10-23". `az ad group update` does not exist in Azure CLI 2.90.0 ("'update' is misspelled or not recognized"); used `az rest --method PATCH` on Graph `v1.0/groups/{id}` instead.
+  - Drift run 40012303125 (manual): `entra/platform` plan showed `~ description = "...INDUCED DRIFT..." -> "Finance (Okta group Finance)"`, `Plan: 0 to add, 1 to change, 0 to destroy`; opened issue #10 "Entra drift detected 2026-10-23"; run failed red, as designed.
+  - Drift run 40012452732 (manual, drift still in place): commented on #10; still exactly one `drift` issue.
+  - Not yet done: reconcile. Prod still holds the drifted description; nightly runs will keep commenting on #10 until a PR puts it back through the pipeline.
+  - **Lab Phase 3 exit tests: 4 of 4 met.**
+- Time taken: about 10 minutes.
+- Evidence: runs 40012303125 and 40012452732; issue #10 (1 comment).
+- Change to the client plan, if any: none. The drift job opens one issue and then appends to it, so a noisy object does not flood the issue list.
+- Accepted risks added, if any: prod `iac-finance` description drifted until reconciled by PR (lab only, no access impact).

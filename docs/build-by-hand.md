@@ -491,7 +491,7 @@ From here, every change to `entra/` goes through a PR like this one.
 | Rule-breaking PR | Valid change ticket; in `entra/waves/wave-00/ca-policies.tf` set `excluded_groups = []` | Both `plan` checks fail on "CA policy must exclude bg-ca-exclusion"; merge blocked. Close unmerged |
 | PR without a change ticket | Comment-only change; no `Change:` line | `change-gate / check` fails; merge blocked. Close unmerged |
 | Compliant PR | Part 12 | nonprod applies on merge; prod only after approval |
-| Induced drift | After a clean nightly drift run (10:41 UTC), change one prod object in the portal (for example the description of group `iac-finance`), then `gh workflow run drift.yml` | Exactly one issue labeled `drift` opens. Undo the portal change; the next run comments or stays clean |
+| Induced drift | After a clean nightly drift run (10:41 UTC), change one prod object in the portal (for example the description of group `iac-finance`; from the CLI, `az rest --method PATCH --url https://graph.microsoft.com/v1.0/groups/<id> --body '{"description":"..."}'`), then `gh workflow run drift.yml` | Exactly one issue labeled `drift` opens. Undo the portal change; the next run comments or stays clean |
 
 Drift is never fixed automatically. Either put the portal change back, or codify it in a PR.
 
@@ -530,4 +530,5 @@ Drift is never fixed automatically. Either put the portal change back, or codify
 | Prod approval window has no tick box | `prevent_self_review` is on and you triggered the run | Turn it off (one-person lab) |
 | SAML portal claims page shows the wrong claims | A claims mapping policy is assigned; the portal shows defaults | Read claims from Graph or the code, not that page |
 | New Okta users cannot sign in ("Unable to sign in", ENROLL in the system log) | Built-in Okta Dashboard policy requires 2FA | Seed script sets its catch-all to password only |
+| `az ad group update`: "'update' is misspelled or not recognized" | Azure CLI has no group update command | `az rest --method PATCH` on Graph `v1.0/groups/<id>` |
 | Microsoft 365 trial checkout asks for a billing profile, then fails | Commerce flow from the wrong account | Start the trial from Entra admin center → Licenses → Try/Buy as a work account in the tenant |
