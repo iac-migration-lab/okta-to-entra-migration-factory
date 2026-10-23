@@ -614,3 +614,14 @@ Current phase set to 1 at the top of this log.
 - Evidence: this commit.
 - Change to the client plan, if any: hand each platform team its runbook at kickoff; the "who does what" table is the starting RACI (responsible, accountable, consulted, informed) for the client.
 - Accepted risks added, if any: UNVERIFIED items marked in the runbooks (lease break with `--auth-mode login`; SAML signing certificate default validity).
+
+## 2026-10-23, Run 1, Lab Phase 3, Linux and Windows tool installs
+- What the docs said: `docs/tool-install.md` covered an Apple Silicon Mac only; README said "Linux works with different download names".
+- What actually happened:
+  - Added a Linux section (Debian 12, Ubuntu 24.04; x86_64 and Arm): an apt block for base packages, Azure CLI 2.90.0 (exact, `apt-mark hold`) and GitHub CLI, then a pinned-tools block (Terraform 1.16.4, sail 2.6.0, Conftest 0.71.0, Node 24.21.0, Prism 5.16.0, PowerShell 7.6.6) with checksums. Added a Windows section: WSL2 with Ubuntu 24.04, then the Linux steps; repo and `~/.okta-lab` inside the Linux file system; `wslview` for browser sign-ins; Microsoft365DSC in native Windows PowerShell. Added a table of Mac-only commands (`pbpaste`, `pbcopy`, `open`) with Linux and Windows equivalents, and `.gitattributes` forcing LF line endings.
+  - Tested both Linux blocks as written in clean Docker containers: Debian 12 Arm, Ubuntu 24.04 Arm, Ubuntu 24.04 x86_64 (emulated). Three fixes found by testing: (1) PowerShell's `hashes.sha256` is UTF-16 with CRLF line endings; it needs `iconv -f UTF-16 -t UTF-8` and `tr -d '\r'` before `grep`. (2) PowerShell crashes on start without ICU; added `libicu-dev`. (3) On Ubuntu, `apt-get` installing `tzdata` read the rest of the pasted heredoc as input and the block stopped silently with exit 0; every `apt-get` now runs with `DEBIAN_FRONTEND=noninteractive` and `< /dev/null`.
+  - Final result on all three: every tool at its pinned version, all five checksums OK; gh 2.103.0 (not pinned, as on the Mac).
+- Time taken: about 50 minutes.
+- Evidence: test output in this session; versions above.
+- Change to the client plan, if any: engineers on Windows use WSL2 with Ubuntu 24.04 (same as the pipeline runners), never native PowerShell for the repo scripts. Pasted install blocks keep package managers off standard input.
+- Accepted risks added, if any: not tested on Debian x86_64 or on a real Windows WSL2 install; the `wslview` browser hand-off for `az login` is UNVERIFIED.

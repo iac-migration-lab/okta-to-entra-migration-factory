@@ -7,6 +7,7 @@ Every step to build this lab yourself, in order, with no AI assistant: Okta read
 **Moving to new accounts?** Do [porting-guide.md](porting-guide.md) first. It lists every value to replace. This guide uses placeholders in `<angle brackets>` for those values.
 
 **Conventions**
+- Commands are written for a Mac. On Linux or Windows (WSL2), swap the few Mac-only commands (`pbpaste`, `pbcopy`, `open`) using the table in [tool-install.md](tool-install.md#commands-that-differ-from-the-mac-docs).
 - Run commands from the repo root unless a step says otherwise. Start every terminal session with `source lab-tools/env.sh`.
 - `UNVERIFIED:` marks a portal label or behavior not re-checked for this guide. Portals change; look for the nearest match.
 - Secrets live only in `~/.okta-lab/` (folder mode 700, files 600) and a password manager. Never in the repo, which is public.
@@ -60,7 +61,7 @@ curl -s https://<okta-org>.okta.com/.well-known/okta-organization | python3 -m j
 
 ## 2. Tools
 
-Apple Silicon Mac. Paste the install block from [tool-install.md](tool-install.md); it checksum-verifies each download and puts it in `lab-tools/` (git-ignored). Also install the GitHub CLI (command-line interface) and `jq`:
+Paste the install block for your machine from [tool-install.md](tool-install.md): Apple Silicon Mac, Linux (Debian or Ubuntu), or Windows through WSL2 (Windows Subsystem for Linux). Each block checksum-verifies every download and puts it in `lab-tools/` (git-ignored). On Linux and Windows the GitHub CLI (command-line interface) and `jq` are part of the block; on a Mac, also run:
 
 ```bash
 brew install gh jq

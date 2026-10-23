@@ -126,7 +126,7 @@ Other acronyms: SAML (Security Assertion Markup Language) and OIDC (OpenID Conne
 About $0 to a few cents a month for state storage. The lab uses a $10 monthly budget alert. The P2 trial is free for 30 days.
 
 ### Computer
-Instructions are for an Apple Silicon Mac (macOS). Linux works with different download names. Allow about 600 MB for tools.
+Instructions cover an Apple Silicon Mac, Linux (Debian 12 or Ubuntu 24.04) and Windows 10 or 11 through WSL2 (Windows Subsystem for Linux, which runs Ubuntu inside Windows): see [docs/tool-install.md](docs/tool-install.md). Allow about 600 MB for tools.
 
 ### Time
 Run 1 took roughly: Lab Phase 0 one evening, Lab Phase 1 two evenings, Lab Phase 2 two to three evenings.
@@ -464,4 +464,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-23 (Run 1, Lab Phase 3 in progress; folder READMEs expanded; per-platform runbooks added in `docs/runbooks/`)._
+_Last updated: 2026-10-23 (Run 1, Lab Phase 3 in progress; folder READMEs expanded; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added)._
