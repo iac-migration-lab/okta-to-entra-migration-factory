@@ -5,7 +5,7 @@ Written by `.github/workflows/snapshot.yml` from org `integrator-2631921.okta.co
 | Object | Count |
 |---|---|
 | Users ACTIVE | 9 |
-| Users DEPROVISIONED | 1 |
+| Users PROVISIONED | 1 |
 | Groups (custom) | 3 |
 | Apps (visible to reader) | 7 |
 | App group assignments | 8 |
