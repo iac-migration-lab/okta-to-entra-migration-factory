@@ -447,6 +447,7 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 | [docs/porting-guide.md](docs/porting-guide.md) | Moving this repo to new accounts: every value to replace, rebuild order |
 | [docs/git-check-plans-info.md](docs/git-check-plans-info.md) | The four required PR checks and the branch protection command |
 | [docs/findings-log.md](docs/findings-log.md) | What actually happened, in order, with evidence (current phase at the top) |
+| [docs/runbooks/](docs/runbooks/README.md) | One runbook per platform team (Okta, Entra, SailPoint, Azure, GitHub): ownership, daily checks, procedures, alert response |
 | [docs/migration-runbook.md](docs/migration-runbook.md) | The migration run book that each run fills in (Draft → Run 1 → Proven) |
 | [docs/permission-register.md](docs/permission-register.md) | Every grant made, with a production verdict |
 | [docs/change-gate-design.md](docs/change-gate-design.md) | How the change-ticket gate works with any ticket system |
@@ -463,4 +464,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-23 (Run 1, Lab Phase 3 in progress; folder READMEs expanded, READMEs added for `entra/`, `.github/` and `docs/`)._
+_Last updated: 2026-10-23 (Run 1, Lab Phase 3 in progress; folder READMEs expanded; per-platform runbooks added in `docs/runbooks/`)._

@@ -606,3 +606,11 @@ Current phase set to 1 at the top of this log.
 - Evidence: `git remote -v` shows only `origin`.
 - Change to the client plan, if any: none.
 - Accepted risks added, if any: none.
+
+## 2026-10-23, Run 1, Lab Phase 3, per-platform runbooks
+- What the docs said: one cross-platform runbook (`docs/migration-runbook.md`), organized by migration step, not by team.
+- What actually happened: added `docs/runbooks/` with an index (who does what across teams, how a wave moves between them, which team answers which alert) and one runbook each for Okta, Entra, SailPoint, Azure, and GitHub and the pipeline. Each covers: role, what the team owns, access (production target versus lab today), daily and weekly checks, procedures with a status (Run 1 or Draft), alert response, do-nots, lab 1 lessons. SailPoint is Draft throughout (not built in run 1). Cutover, rollback, decommission, CA enable, state lock and state restore procedures are Draft; Lab Phase 4 and later runs prove them.
+- Time taken: about 40 minutes.
+- Evidence: this commit.
+- Change to the client plan, if any: hand each platform team its runbook at kickoff; the "who does what" table is the starting RACI (responsible, accountable, consulted, informed) for the client.
+- Accepted risks added, if any: UNVERIFIED items marked in the runbooks (lease break with `--auth-mode login`; SAML signing certificate default validity).
