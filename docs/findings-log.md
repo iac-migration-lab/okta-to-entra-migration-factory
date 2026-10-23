@@ -590,3 +590,11 @@ Current phase set to 1 at the top of this log.
 - Evidence: this commit; a relative-link check of every edited README found 0 broken links.
 - Change to the client plan, if any: none.
 - Accepted risks added, if any: none.
+
+## 2026-10-23, Run 1, Lab Phase 3, README commit tripped apply; Markdown now ignored
+- What the docs said: `apply.yml` runs on any push to `main` under `entra/**` or `policy/**`.
+- What actually happened: the README commit b75da7c (direct admin push, includes `entra/README.md`) started apply run 39914613389. The change gate failed it ("commit has no pull request; changes reach Entra only through a PR"); nonprod and prod were skipped, nothing applied. The gate behaved as designed; the red run was noise. Added `"!**/*.md"` to the `apply.yml` push paths so documentation-only commits do not start an apply. Pushed straight to `main` (workflow fix; same shortcut as 2026-10-21).
+- Time taken: about 5 minutes.
+- Evidence: run 39914613389 (change-gate failure, applies skipped).
+- Change to the client plan, if any: path filters on the apply workflow exclude documentation, so README edits never wait on a change ticket or a prod approval.
+- Accepted risks added, if any: a `.md` file under `entra/` will never trigger an apply; only `.tf`, `.tfvars` and `.rego` changes matter there.

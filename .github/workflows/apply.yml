@@ -9,6 +9,7 @@ on:
     paths:
       - "entra/**"
       - "policy/**"
+      - "!**/*.md" # README-only commits change nothing in Entra (findings 2026-10-23)
   workflow_dispatch:
 
 permissions:
