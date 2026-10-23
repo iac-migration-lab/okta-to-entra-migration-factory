@@ -1,5 +1,7 @@
 # Staff groups, one per Okta group (okta-inventory/groups.tf). Membership comes from provisioning
 # (run 1: CLI, findings 2026-10-16), so Terraform manages the group, not its members.
+# A portal edit to a description is drift: the nightly drift job reports it, and the next apply puts it back
+# (Lab Phase 3 induced-drift test on iac-finance, findings 2026-10-23).
 locals {
   staff_groups = {
     it       = { name = "${var.name_prefix}-it", description = "IT staff (Okta group IT)" }
