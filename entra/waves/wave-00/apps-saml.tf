@@ -27,7 +27,7 @@ locals {
 }
 
 # The apps through azuread_application with template_id. (it-tools, built with azuread_application_from_template
-# to compare the two, and hr-portal moved to entra/waves/wave-01 on 2026-10-26; see moves.tf.)
+# to compare the two, and hr-portal moved to entra/waves/wave-01 on 2026-10-26 by PR #14.)
 # Instantiating the template also adds a user_impersonation OAuth2 scope ("TERRAFORM_INSTANTIATE_<guid>") that
 # this config does not declare, so the first apply leaves a diff; the pipeline's post-apply plan applies once more
 # to remove it (.github/scripts/tf-roots.sh, findings 2026-10-20).

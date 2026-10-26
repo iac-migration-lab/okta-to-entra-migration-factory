@@ -1,5 +1,5 @@
 # iac-saml-it-tools: low-risk app of wave-01 (docs/wave-01-plan.md). Built in wave-00 and moved here unchanged
-# (imports.tf); Okta source okta-inventory/app-iac-saml-it-tools.tf, assigned to the IT group.
+# (PR #14, import blocks since deleted); Okta source okta-inventory/app-iac-saml-it-tools.tf, assigned to the IT group.
 resource "azuread_application_from_template" "it_tools" {
   display_name = "${var.name_prefix}-saml-it-tools"
   template_id  = local.non_gallery_template_id

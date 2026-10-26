@@ -1,5 +1,5 @@
 # iac-saml-hr-portal: tier 1 app of wave-01 (docs/wave-01-plan.md). Built in wave-00 and moved here unchanged
-# (imports.tf); Okta source okta-inventory/app-iac-saml-hr-portal.tf, assigned to all three staff groups.
+# (PR #14, import blocks since deleted); Okta source okta-inventory/app-iac-saml-hr-portal.tf, assigned to all three staff groups.
 # Same shape as the wave-00 "saml" resources, written for one app instead of a for_each map.
 resource "azuread_application" "hr_portal" {
   display_name     = "${var.name_prefix}-saml-hr-portal"
@@ -18,6 +18,19 @@ resource "azuread_application" "hr_portal" {
 
   web {
     redirect_uris = [local.acs_url]
+  }
+
+  # Okta sends a "groups" attribute (all the user's groups). The custom claims policy has no group claim type
+  # (Graph beta $metadata, 2026-10-26), so groups come from the app registration: only groups assigned to the
+  # app, as display names (cloud groups have no sAMAccountName). UNVERIFIED until the sign-in test: Entra names
+  # the attribute .../claims/groups, not "groups", and the values are iac-it, not Okta's IT.
+  group_membership_claims = ["ApplicationGroup"]
+
+  optional_claims {
+    saml2_token {
+      name                  = "groups"
+      additional_properties = ["cloud_displayname"]
+    }
   }
 
   lifecycle {
@@ -63,25 +76,54 @@ resource "msgraph_update_resource" "hr_portal_active_signing_key" {
   body = { preferredTokenSigningKeyThumbprint = azuread_service_principal_token_signing_certificate.hr_portal.thumbprint }
 }
 
-# Claims mapping policy as built in wave-00 (claims experiment method A). Moves to the msgraph customClaimsPolicy,
-# with the missing Okta "groups" claim, in the next wave-01 PR (docs/wave-01-plan.md step 3).
-resource "azuread_claims_mapping_policy" "hr_portal" {
-  display_name = "${var.name_prefix}-cmp-hr-portal"
-  definition = [jsonencode({
-    ClaimsMappingPolicy = {
-      Version              = 1
-      IncludeBasicClaimSet = "true"
-      ClaimsSchema = [
-        { Source = "user", ID = "userprincipalname", SamlClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier", SamlNameIdFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress" },
-        { Source = "user", ID = "department", SamlClaimType = "department" },
-        { Source = "user", ID = "jobtitle", SamlClaimType = "title" },
-        { Source = "user", ID = "employeeid", SamlClaimType = "employeeNumber" },
-      ]
-    }
-  })]
+# Claims through the msgraph customClaimsPolicy (the chosen method, findings 2026-10-20), replacing the wave-00
+# claims mapping policy. Same four values as Okta's NameID and attribute statements, groups aside (see above).
+locals {
+  hr_portal_claims_policy = {
+    includeBasicClaimSet = true
+    claims = [
+      {
+        # Okta sends the username as the emailAddress NameID.
+        "@odata.type"  = "#microsoft.graph.samlNameIdClaim"
+        nameIdFormat   = "emailAddress"
+        configurations = [{ attribute = { "@odata.type" = "#microsoft.graph.sourcedAttribute", id = "userprincipalname", source = "user", isExtensionAttribute = false } }]
+      },
+      {
+        "@odata.type"  = "#microsoft.graph.customClaim"
+        name           = "department"
+        tokenFormat    = ["saml"]
+        configurations = [{ attribute = { "@odata.type" = "#microsoft.graph.sourcedAttribute", id = "department", source = "user", isExtensionAttribute = false } }]
+      },
+      {
+        "@odata.type"  = "#microsoft.graph.customClaim"
+        name           = "title"
+        tokenFormat    = ["saml"]
+        configurations = [{ attribute = { "@odata.type" = "#microsoft.graph.sourcedAttribute", id = "jobtitle", source = "user", isExtensionAttribute = false } }]
+      },
+      {
+        "@odata.type"  = "#microsoft.graph.customClaim"
+        name           = "employeeNumber"
+        tokenFormat    = ["saml"]
+        configurations = [{ attribute = { "@odata.type" = "#microsoft.graph.sourcedAttribute", id = "employeeid", source = "user", isExtensionAttribute = false } }]
+      },
+    ]
+  }
 }
 
-resource "azuread_service_principal_claims_mapping_policy_assignment" "hr_portal" {
-  claims_mapping_policy_id = azuread_claims_mapping_policy.hr_portal.id
-  service_principal_id     = azuread_service_principal.hr_portal.id
+# GET claimsPolicy is 404 until a policy exists, and msgraph_update_resource reads first, so a one-time PUT
+# creates it (same pattern as wave-00 it-tools). The PUT works while the old mapping policy is still assigned
+# (tested on iac-np-saml-hr-portal, 2026-10-26), so one apply can switch methods.
+resource "msgraph_resource_action" "hr_portal_claims_create" {
+  api_version  = "beta"
+  resource_url = "servicePrincipals/${azuread_service_principal.hr_portal.object_id}/claimsPolicy"
+  method       = "PUT"
+  body         = local.hr_portal_claims_policy
+}
+
+resource "msgraph_update_resource" "hr_portal_claims" {
+  api_version = "beta"
+  url         = "servicePrincipals/${azuread_service_principal.hr_portal.object_id}/claimsPolicy"
+  body        = local.hr_portal_claims_policy
+
+  depends_on = [msgraph_resource_action.hr_portal_claims_create]
 }

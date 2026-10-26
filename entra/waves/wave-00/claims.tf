@@ -6,5 +6,5 @@
 # Result 2026-10-20 (findings): portal edits are blocked on hr-portal, seen field by field on it-tools (plan wants
 # them back), and invisible on custserv-desk. Decision: msgraph customClaimsPolicy for SAML claims.
 #
-# hr-portal and it-tools, with their claims resources, moved to entra/waves/wave-01 on 2026-10-26 (moves.tf).
+# hr-portal and it-tools, with their claims resources, moved to entra/waves/wave-01 on 2026-10-26 (PR #14).
 # Nothing is left in this file; custserv-desk and finance-ledger get code-managed claims in their own wave.
