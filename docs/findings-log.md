@@ -1,5 +1,5 @@
 Current run: 1 (Implementation Phase 0)
-Current lab phase: 4 (wave-01 moved and hr-portal claims applied 2026-10-26; next: sign-in tests, wave-01-plan step 4)
+Current lab phase: 4 (wave-01 moved, claims applied, sign-in tests passed 2026-10-26; next: iac-okta-cutover identity, wave-01-plan step 5)
 
 # Findings Log
 
@@ -714,3 +714,28 @@ Current phase set to 1 at the top of this log.
 - Evidence: PR #16, run 40401147177, issue #15.
 - Change to the client plan, if any: none beyond the entry above.
 - Accepted risks added, if any: none new.
+
+## 2026-10-26, Run 1, Lab Phase 4, wave-01 sign-in tests through Entra
+- What the docs said: `docs/wave-01-plan.md` step 4: Ada signs in to it-tools and hr-portal, Gus to hr-portal (check `department`, `title`, `employeeNumber`, `groups`), Gus refused on it-tools, Ivan absent from Entra. Screenshots to `docs/evidence/`.
+- What actually happened:
+  - Pre-checks (Graph): Ada in `iac-it` only (IT, IT Manager, 1001); Gus in `iac-finance` only (Finance, Finance Manager, 3001); hr-portal assigned to all three staff groups, it-tools to `iac-it`; no Ivan in Entra.
+  - Owner signed in from My Apps in private windows. Entra sign-in log: Ada `iac-saml-hr-portal` 23:27:30Z and `iac-saml-it-tools` 23:28:55Z, Gus `iac-saml-hr-portal` 23:36:01Z, all success (Gus also hit 50140, the "Stay signed in?" interrupt, harmless). Log entries lag about 5 minutes.
+  - Claims on the IAM Showcase page, compared with Okta's `okta_app_saml.iac_saml_hr_portal`:
+
+    | Claim | Okta | Entra (Ada / Gus) | Match |
+    |---|---|---|---|
+    | NameID, emailAddress | username | `ada.reyes@…onmicrosoft.com` / `gus.tanaka@…` | Format yes; value changes (known, NameID lesson) |
+    | `department` | user.department | IT / Finance | Yes |
+    | `title` | user.title | IT Manager / Finance Manager | Yes |
+    | `employeeNumber` | user.employeeNumber | 1001 / 3001 | Yes |
+    | groups | `groups`: IT, CustServ, Finance (user's groups, regex `.*`) | `http://schemas.microsoft.com/ws/2008/06/identity/claims/groups`: `iac-it` / `iac-finance` | **Name and values differ** (as predicted in PR #16) |
+    | Extra | none | `displayname`, `tenantid`, `identityprovider`, `objectidentifier`, `name`, `authnmethodsreferences` (basic set) | Extra only |
+
+  - it-tools (Ada): NameID and `department` IT, as built; no groups (not configured on that app).
+  - Gus on it-tools: `AADSTS50105` "not a direct member of a group with access", request ea5b78f7-d565-4569-888e-3ae8c25d1600, 23:43:02Z. First attempt used a link with the service principal object ID and got "App not found"; the user access URL takes the **application (client) ID**: `https://launcher.myapps.microsoft.com/api/signin/<appId>?tenantId=<tenantId>`. Kept as `2026-10-26-signin-gus-it-tools-wrong-link.png`.
+  - No MFA prompt for Gus: `LAB-CA11` is report-only.
+  - The owner saved the two Ada screenshots under each other's names; caught from the AudienceRestriction and IssueInstant on each page against the sign-in log, and renamed.
+- Time taken: about 30 minutes.
+- Evidence: `docs/evidence/2026-10-26-signin-ada-it-tools.png`, `…-ada-hr-portal.png`, `…-gus-hr-portal.png`, `…-gus-it-tools-refused.png`, `…-gus-it-tools-wrong-link.png`.
+- Change to the client plan, if any: check every screenshot's audience and timestamp against the sign-in log, not its file name. The groups claim needs an app-owner decision before cutover: accept Entra's attribute name and group names, or rename and map them in the app.
+- Accepted risks added, if any: run 1 accepts the groups claim name and values difference on the test site (no real app reads it).

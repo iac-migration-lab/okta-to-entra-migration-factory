@@ -468,7 +468,7 @@ From here, every change to `entra/` goes through a PR like this one.
    add iac-it ada.reyes; add iac-it cara.lind; add iac-custserv cara.lind; add iac-finance gus.tanaka
    ```
    Store the password in the password manager.
-2. **SAML:** private window → `https://myapps.microsoft.com/<tenant-domain>.onmicrosoft.com` → sign in as Ada → open each tile. The test site shows the claims (NameID, department, title, employeeNumber on hr-portal). Screenshot to `docs/evidence/`.
+2. **SAML:** private window → `https://myapps.microsoft.com/<tenant-domain>.onmicrosoft.com` → sign in as Ada → open each tile. The test site shows the claims (NameID, department, title, employeeNumber and Entra's `.../claims/groups` on hr-portal). Screenshot to `docs/evidence/`; check the AudienceRestriction on each page against the Entra sign-in log. To test a refusal, open the app's user access URL as an unassigned user: `https://launcher.myapps.microsoft.com/api/signin/<application (client) ID>?tenantId=<tenant-id>` (not the service principal object ID, which gives "App not found"); expect `AADSTS50105`.
 3. **OIDC:** private window → https://oidcdebugger.com:
 
    | Field | Value |

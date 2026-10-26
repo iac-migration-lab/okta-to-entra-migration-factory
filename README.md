@@ -4,7 +4,7 @@ Move applications from **Okta** to **Microsoft Entra ID** "as code": every app, 
 
 This repo is a working proof of concept, built on free accounts with dummy data. It is also a step-by-step guide you can follow to run the same migration on your own lab, and later adapt to a real environment.
 
-> **Status (updated 2026-10-26):** Run 1, Lab Phase 4 in progress. Lab Phases 1 to 3 complete: Okta discovery and nightly snapshot, Entra brownfield import, 4 SAML apps and 1 OIDC app translated, and the pipeline with all four exit tests passed. Wave-01 is planned ([docs/wave-01-plan.md](docs/wave-01-plan.md)): `it-tools` and `hr-portal` move from wave-00, get tested through Entra, then lose their Okta assignments; a rollback drill is timed on `it-tools`. The move (PR #14) is applied in both copies: nothing destroyed, 15 objects imported into wave-01, new report-only `LAB-CA11`. hr-portal claims are on the custom claims policy with a new `groups` claim (PR #16, applied). Next: the sign-in tests through Entra. Must finish by 2026-11-15 (P2 trial). Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
+> **Status (updated 2026-10-26):** Run 1, Lab Phase 4 in progress. Lab Phases 1 to 3 complete: Okta discovery and nightly snapshot, Entra brownfield import, 4 SAML apps and 1 OIDC app translated, and the pipeline with all four exit tests passed. Wave-01 is planned ([docs/wave-01-plan.md](docs/wave-01-plan.md)): `it-tools` and `hr-portal` move from wave-00, get tested through Entra, then lose their Okta assignments; a rollback drill is timed on `it-tools`. The move (PR #14) is applied in both copies: nothing destroyed, 15 objects imported into wave-01, new report-only `LAB-CA11`. hr-portal claims are on the custom claims policy with a new `groups` claim (PR #16, applied). Sign-in tests through Entra passed 2026-10-26 (Ada and Gus; Gus refused on it-tools; the `groups` claim arrives under Entra's name with Entra group names). Next: the Okta cutover identity. Must finish by 2026-11-15 (P2 trial). Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
 
 > **Lab only.** Personal free accounts, fictional users, nothing to do with any company or client. Do not point this repo at a production tenant without reading [Adapting this to your own environment](#adapting-this-to-your-own-environment).
 
@@ -350,7 +350,7 @@ Graph permissions: reader and planner `Directory.Read.All`, `Policy.Read.All`; a
 
 **4.2 Okta cutover identity** `iac-okta-cutover`: an Okta service app with only `okta.apps.manage`, switched on for the wave and off afterwards.
 
-**4.3 Validate:** users sign in through Entra during the validation window.
+**4.3 Validate:** users sign in through Entra during the validation window. ✅ 2026-10-26: Ada and Gus signed in from My Apps, all claims present, Gus refused on it-tools (`AADSTS50105`); screenshots in `docs/evidence/`. Check each screenshot's audience and time against the Entra sign-in log, not its file name.
 
 **4.4 Remove Okta access:** the cutover identity removes the Okta **assignments** (not the apps). The next Okta snapshot should show exactly that change.
 
@@ -469,4 +469,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-26 (Run 1, Lab Phase 4 in progress: wave-01 planned in `docs/wave-01-plan.md`, move PR #14 applied, hr-portal claims PR #16 applied; Lab Phase 3 complete; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._
+_Last updated: 2026-10-26 (Run 1, Lab Phase 4 in progress: wave-01 planned in `docs/wave-01-plan.md`, move PR #14 applied, hr-portal claims PR #16 applied, sign-in tests passed; Lab Phase 3 complete; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._
