@@ -1,5 +1,5 @@
 Current run: 1 (Implementation Phase 0)
-Current lab phase: 4 (Lab Phase 3 closed 2026-10-23)
+Current lab phase: 4 (wave-01 planned 2026-10-26)
 
 # Findings Log
 
@@ -650,4 +650,16 @@ Current phase set to 1 at the top of this log.
 - Time taken: about 10 minutes, plus the owner's approval.
 - Evidence: issue #11, PR #12, runs 40032856011, 40032967722, 40033207277; issue #10 closed.
 - Change to the client plan, if any: putting a portal change back needs a code change to start the apply. A comment-only PR works but is a workaround; run 2 should add a reconcile path (for example `workflow_dispatch` on `apply.yml` with a change issue input) so a revert needs no dummy commit.
+- Accepted risks added, if any: none.
+
+## 2026-10-26, Run 1, Lab Phase 4, wave-01 planned: it-tools and hr-portal
+- What the docs said: build-phases Phase 4 step 1: wave plan for two apps (one low risk, one "tier 1"), risk score from assignment count, validation windows 2 and 5 days. `entra/waves/README.md`: moving an app between waves needs `moved`/`removed` blocks, not a delete and re-create.
+- What actually happened:
+  - Wrote `docs/wave-01-plan.md`. Risk score (active users + 2 per group + 2 per custom claim + 3 if Okta MFA applies): it-tools 5, custserv-desk 6, finance-ledger 7, oidc-portal 7, hr-portal 25. Chosen: `iac-saml-it-tools` (low risk, 2-day window) and `iac-saml-hr-portal` (tier 1, 5-day window). Rollback drill on it-tools.
+  - Tested locally with `terraform_data` (Terraform 1.16.4, no cloud calls): a `removed` block cannot name a `for_each` instance (`Error: Resource instance keys not allowed`). A `moved` block (instance to a plain name) plus a `removed` block for that name in the same configuration works: plan "will no longer be managed by Terraform, but will not be destroyed", 0 to destroy; apply left only the other instance in state. hr-portal (and it-tools' active signing key) sit in `for_each` maps in wave-00, so the move uses that pair; wave-01 adopts with `import` blocks.
+  - Gap found while planning: wave-00 hr-portal's claims mapping policy sends `department`, `title`, `employeeNumber` but not the Okta `groups` attribute statement. The Lab Phase 2 claims check covered the three user attributes only. Fix planned in wave-01 PR B (switch to msgraph `customClaimsPolicy`, add `groups`).
+  - Nothing built or changed in Okta or Entra yet.
+- Time taken: about 30 minutes.
+- Evidence: `docs/wave-01-plan.md`; local test output in this session.
+- Change to the client plan, if any: (1) Move apps between wave state files with `moved` + `removed` (destroy = false) in the source and `import` in the target; never `terraform state rm` by hand. Avoid `for_each` maps that span apps, or accept the extra `moved` step. (2) The claims comparison must list every Okta attribute statement and group attribute statement per app, not a sample.
 - Accepted risks added, if any: none.

@@ -30,6 +30,7 @@ Three files are records kept as the lab runs. They are the evidence for every de
 | [git-check-plans-info.md](git-check-plans-info.md) | Understand the four required pull request checks, or reset branch protection with `gh api` |
 | [change-gate-design.md](change-gate-design.md) | See how the change-ticket gate works and how it would connect to ServiceNow or Jira |
 | [migration-runbook.md](migration-runbook.md) | Run a migration wave: the checklist each run fills in and tightens |
+| [wave-01-plan.md](wave-01-plan.md) | The first cutover wave: which two apps, the risk score, how they move, dates, go/no-go |
 | [runbooks/](runbooks/README.md) | Operate one platform as its engineer: [Okta](runbooks/okta.md), [Entra](runbooks/entra.md), [SailPoint](runbooks/sailpoint.md), [Azure](runbooks/azure.md), [GitHub and pipeline](runbooks/github-pipeline.md); who owns what, daily checks, procedures, alerts |
 
 ### Reference

@@ -19,7 +19,7 @@ SAML is Security Assertion Markup Language; OIDC is OpenID Connect. Both are sig
 
 ## wave-00 (Lab Phase 2): all five custom apps, built and tested, not cut over
 
-wave-00 holds every custom app from the lab Okta org. It proved the build and test steps; the first cutover wave will be `wave-01`.
+wave-00 holds every custom app from the lab Okta org. It proved the build and test steps; the first cutover wave will be `wave-01` (planned: `it-tools` and `hr-portal`, [docs/wave-01-plan.md](../../docs/wave-01-plan.md)).
 
 | File | What it builds | Okta source |
 |---|---|---|
@@ -64,7 +64,7 @@ Decision (2026-10-20): use the msgraph `customClaimsPolicy` for SAML claims in l
 ## How to add a wave
 
 1. Copy `wave-00` to `wave-NN`. Keep `data.tf`, `variables.tf`, `providers.tf`, `versions.tf`; change the state key in `backend.tf` to `entra/waves/wave-NN/terraform.tfstate`.
-2. Move or write the apps for this batch. An app lives in exactly one wave; moving an existing one needs `moved`/`removed` blocks, not a delete and re-create.
+2. Move or write the apps for this batch. An app lives in exactly one wave; moving an existing one never deletes and re-creates it. In the old wave, add a `removed` block with `lifecycle { destroy = false }`; in the new wave, an `import` block by object ID. A `removed` block cannot name one instance of a `for_each` resource, so first `moved` that instance to a plain name and remove that name, in the same change (tested 2026-10-26; [docs/wave-01-plan.md](../../docs/wave-01-plan.md) section 4).
 3. **Create the state file once with your own login**, for both containers, before the first pull request. The planner can only read state, so it fails with `403 AuthorizationPermissionMismatch` on a state file that does not exist:
    ```bash
    for c in tfstate-prod tfstate-nonprod; do terraform -chdir=entra/waves/wave-NN init -reconfigure -backend-config=container_name=$c; done

@@ -31,7 +31,7 @@ Every step to build this lab yourself, in order, with no AI assistant: Okta read
 15. Daily operation
 16. Troubleshooting (lab 1 lessons)
 
-Planned but not yet run in lab 1: the cutover wave and rollback drill (Lab Phase 4). See [build-phases.md](build-phases.md).
+Planned but not yet run in lab 1: the cutover wave and rollback drill (Lab Phase 4). See [build-phases.md](build-phases.md) and the wave plan [wave-01-plan.md](wave-01-plan.md).
 
 ---
 
@@ -531,4 +531,5 @@ Drift is never fixed automatically. Either put the portal change back, or codify
 | SAML portal claims page shows the wrong claims | A claims mapping policy is assigned; the portal shows defaults | Read claims from Graph or the code, not that page |
 | New Okta users cannot sign in ("Unable to sign in", ENROLL in the system log) | Built-in Okta Dashboard policy requires 2FA | Seed script sets its catch-all to password only |
 | `az ad group update`: "'update' is misspelled or not recognized" | Azure CLI has no group update command | `az rest --method PATCH` on Graph `v1.0/groups/<id>` |
+| `Error: Resource instance keys not allowed` on a `removed` block | `removed` cannot name one instance of a `for_each` resource | `moved` the instance to a plain name, then `removed` that name, in the same change (wave-01 plan section 4) |
 | Microsoft 365 trial checkout asks for a billing profile, then fails | Commerce flow from the wrong account | Start the trial from Entra admin center → Licenses → Try/Buy as a work account in the tenant |
