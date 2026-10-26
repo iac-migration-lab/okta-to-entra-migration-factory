@@ -1,5 +1,5 @@
 Current run: 1 (Implementation Phase 0)
-Current lab phase: 4 (wave-01 move applied 2026-10-26; hr-portal claims PR #16 open)
+Current lab phase: 4 (wave-01 moved and hr-portal claims applied 2026-10-26; next: sign-in tests, wave-01-plan step 4)
 
 # Findings Log
 
@@ -702,3 +702,15 @@ Current phase set to 1 at the top of this log.
 - Evidence: issue #15, PR #16.
 - Change to the client plan, if any: group claims are a separate design item per app: where they come from (app registration, not the claims policy), the attribute name, and the values (Entra group names). Agree the change with each app owner before cutover, or map names in the app.
 - Accepted risks added, if any: run 1 accepts different group values (`iac-it` vs `IT`) on the test site; record what the sign-in test shows.
+
+## 2026-10-26, Run 1, Lab Phase 4, hr-portal claims applied (PR #16)
+- What the docs said: `docs/wave-01-plan.md` step 3: merge PR B, owner approves prod.
+- What actually happened:
+  - PR #16 merged (merge commit fd7b8e1). Apply run 40401147177, nonprod then prod (owner approved). Both copies: wave-01 `Apply complete! Resources: 2 added, 1 changed, 2 destroyed.`; every post-apply plan `No changes.`
+  - Checked with `az rest` on Graph after apply, both hr-portal SPs (8e9387a0-… prod, c74c396f-… nonprod): claims policy with basic set on and `department`, `title`, `employeeNumber` (the NameID claim has no name); no claims mapping policy assigned; `iac-cmp-hr-portal` and `iac-np-cmp-hr-portal` deleted (only the oidc-portal ones remain); app registrations `groupMembershipClaims = ApplicationGroup`, SAML optional claim `groups` with `cloud_displayname`.
+  - The one-time move files are gone and nothing re-planned.
+  - Change issue #15 closed, label `change:closed`.
+- Time taken: about 10 minutes plus the prod approval wait.
+- Evidence: PR #16, run 40401147177, issue #15.
+- Change to the client plan, if any: none beyond the entry above.
+- Accepted risks added, if any: none new.
