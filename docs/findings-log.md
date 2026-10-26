@@ -1,5 +1,5 @@
 Current run: 1 (Implementation Phase 0)
-Current lab phase: 4 (wave-01 move applied 2026-10-26; next: hr-portal claims PR)
+Current lab phase: 4 (wave-01 move applied 2026-10-26; hr-portal claims PR #16 open)
 
 # Findings Log
 
@@ -688,3 +688,17 @@ Current phase set to 1 at the top of this log.
 - Evidence: PR #14, run 40392556599, issue #13.
 - Change to the client plan, if any: none. Follow-up: a small PR that deletes `entra/waves/wave-00/moves.tf` and `entra/waves/wave-01/imports.tf` (one-time blocks, done their job); its plans must show no changes.
 - Accepted risks added, if any: none.
+
+## 2026-10-26, Run 1, Lab Phase 4, hr-portal claims to customClaimsPolicy, groups claim added (PR #16)
+- What the docs said: `docs/wave-01-plan.md` step 3: PR B moves hr-portal claims to the msgraph `customClaimsPolicy` and adds the Okta `groups` claim that wave-00 never sent.
+- What actually happened:
+  - The custom claims policy cannot emit groups. Graph beta `$metadata` (downloaded 2026-10-26) lists only `customClaim` and `samlNameIdClaim` under `customClaimBase`, no group claim type; the docs page shows a `groupFilter` property that `$metadata` does not have. So `groups` comes from the app registration: `group_membership_claims = ["ApplicationGroup"]` (groups assigned to the app only) and a `saml2_token` optional claim `groups` with `cloud_displayname` (cloud groups have no sAMAccountName).
+  - Value gap, to check in the sign-in test (step 4): Okta sends attribute `groups` with `IT`, `CustServ`, `Finance` (all the user's groups, regex `.*`); Entra is expected to send `http://schemas.microsoft.com/ws/2008/06/identity/claims/groups` with `iac-it` etc. UNVERIFIED until a real SAML response.
+  - Local CLI change (to get unstuck, owner login): `az rest --method PUT` of the hr-portal claims policy body on `iac-np-saml-hr-portal` (SP c74c396f-…) while `iac-np-cmp-hr-portal` was still assigned. It succeeded (GET shows `department`, `title`, `employeeNumber`, basic set on). So one apply can switch methods; no two-PR gap. The pipeline's PUT replaces this policy with the same body.
+  - Code: `app-hr-portal.tf` drops the claims mapping policy and assignment; adds `local.hr_portal_claims_policy`, `msgraph_resource_action.hr_portal_claims_create` (one-time PUT) and `msgraph_update_resource.hr_portal_claims`, as wave-00 it-tools did. Deleted the one-time `wave-00/moves.tf` and `wave-01/imports.tf`.
+  - Local plans, both copies: wave-00 `No changes` (removing applied `moved`/`removed` blocks is a no-op); wave-01 `2 to add, 1 to change, 2 to destroy` (policy create + track; app group claims; mapping policy + assignment).
+  - Change issue #15, PR #16.
+- Time taken: about 40 minutes.
+- Evidence: issue #15, PR #16.
+- Change to the client plan, if any: group claims are a separate design item per app: where they come from (app registration, not the claims policy), the attribute name, and the values (Entra group names). Agree the change with each app owner before cutover, or map names in the app.
+- Accepted risks added, if any: run 1 accepts different group values (`iac-it` vs `IT`) on the test site; record what the sign-in test shows.

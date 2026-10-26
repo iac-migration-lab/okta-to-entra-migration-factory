@@ -63,12 +63,11 @@ The two apps move here from wave-00 unchanged (same client IDs, certificates, id
 | File | What it holds |
 |---|---|
 | `app-it-tools.tf` | `iac-saml-it-tools` (low risk), assigned to `iac-it`; claims through the msgraph `customClaimsPolicy` |
-| `app-hr-portal.tf` | `iac-saml-hr-portal` (tier 1), assigned to all three staff groups; claims mapping policy until the next wave-01 PR switches it to `customClaimsPolicy` and adds `groups` |
+| `app-hr-portal.tf` | `iac-saml-hr-portal` (tier 1), assigned to all three staff groups; claims through the msgraph `customClaimsPolicy` (replaced the claims mapping policy); `groups` from the app registration (`group_membership_claims`, optional claim) |
 | `ca-policies.tf` | `LAB-CA11 - Wave-01 SAML apps - Require MFA - Finance - Any location`, report-only (wave-00's `LAB-CA10` no longer lists these apps) |
-| `imports.tf` | Import blocks with the object IDs from the wave-00 state, per `tenant_key`. Delete after both copies are applied |
 | `data.tf`, `variables.tf`, `tenants/*.tfvars`, `backend.tf`, `providers.tf`, `versions.tf` | As wave-00 (no `use_shared_audience`); state `entra/waves/wave-01/terraform.tfstate` |
 
-wave-00 `moves.tf` holds the matching `moved` and `removed` blocks; delete it with `imports.tf`.
+The move used one-time files: `imports.tf` here (import blocks with the wave-00 object IDs, per `tenant_key`) and `moves.tf` in wave-00 (`moved` + `removed` blocks). Both were deleted once both copies were applied; see PR #14 for their shape.
 
 ## Who runs it, and how
 
