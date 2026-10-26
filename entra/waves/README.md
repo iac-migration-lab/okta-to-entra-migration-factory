@@ -19,7 +19,7 @@ SAML is Security Assertion Markup Language; OIDC is OpenID Connect. Both are sig
 
 ## wave-00 (Lab Phase 2): all five custom apps, built and tested, not cut over
 
-wave-00 holds every custom app from the lab Okta org. It proved the build and test steps; the first cutover wave will be `wave-01` (planned: `it-tools` and `hr-portal`, [docs/wave-01-plan.md](../../docs/wave-01-plan.md)).
+wave-00 holds every custom app from the lab Okta org. It proved the build and test steps. `it-tools` and `hr-portal` move to `wave-01` in PR #14 (2026-10-26); the tables below describe wave-00 as built.
 
 | File | What it builds | Okta source |
 |---|---|---|
@@ -55,6 +55,20 @@ Decision (2026-10-20): use the msgraph `customClaimsPolicy` for SAML claims in l
 - **Active signing key through msgraph.** azuread 3.10.0 creates the SAML signing certificate but cannot make it the active one.
 - **The extra `user_impersonation` scope.** Creating an app from the template adds a scope the code does not declare, so the first apply leaves a difference. The pipeline's post-apply check applies once more to remove it.
 - **Two ways to create from the template, compared:** three apps use `azuread_application` with `template_id`; `it-tools` uses `azuread_application_from_template`.
+
+## wave-01 (Lab Phase 4): it-tools and hr-portal, the first cutover wave
+
+The two apps move here from wave-00 unchanged (same client IDs, certificates, identifiers, assignments). Plan, risk score and dates: [docs/wave-01-plan.md](../../docs/wave-01-plan.md).
+
+| File | What it holds |
+|---|---|
+| `app-it-tools.tf` | `iac-saml-it-tools` (low risk), assigned to `iac-it`; claims through the msgraph `customClaimsPolicy` |
+| `app-hr-portal.tf` | `iac-saml-hr-portal` (tier 1), assigned to all three staff groups; claims mapping policy until the next wave-01 PR switches it to `customClaimsPolicy` and adds `groups` |
+| `ca-policies.tf` | `LAB-CA11 - Wave-01 SAML apps - Require MFA - Finance - Any location`, report-only (wave-00's `LAB-CA10` no longer lists these apps) |
+| `imports.tf` | Import blocks with the object IDs from the wave-00 state, per `tenant_key`. Delete after both copies are applied |
+| `data.tf`, `variables.tf`, `tenants/*.tfvars`, `backend.tf`, `providers.tf`, `versions.tf` | As wave-00 (no `use_shared_audience`); state `entra/waves/wave-01/terraform.tfstate` |
+
+wave-00 `moves.tf` holds the matching `moved` and `removed` blocks; delete it with `imports.tf`.
 
 ## Who runs it, and how
 

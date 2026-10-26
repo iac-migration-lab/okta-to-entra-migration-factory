@@ -663,3 +663,16 @@ Current phase set to 1 at the top of this log.
 - Evidence: `docs/wave-01-plan.md`; local test output in this session.
 - Change to the client plan, if any: (1) Move apps between wave state files with `moved` + `removed` (destroy = false) in the source and `import` in the target; never `terraform state rm` by hand. Avoid `for_each` maps that span apps, or accept the extra `moved` step. (2) The claims comparison must list every Okta attribute statement and group attribute statement per app, not a sample.
 - Accepted risks added, if any: none.
+
+## 2026-10-26, Run 1, Lab Phase 4, wave-01 move PR built (plans green, not merged)
+- What the docs said: `docs/wave-01-plan.md` step 1 (create the wave-01 state files with the owner's login) and step 2 (one PR: wave-00 forgets, wave-01 imports, add `LAB-CA11`).
+- What actually happened:
+  - Local, owner CLI login: `terraform init` of `entra/waves/wave-01` in `tfstate-prod` and `tfstate-nonprod` created both state blobs (181 bytes each, checked with `az storage blob show --auth-mode login`). Read the wave-00 object IDs from `terraform state pull` (prod and nonprod) and generated `entra/waves/wave-01/imports.tf` from them (a map keyed by `tenant_key`; the import `id` takes a local, so one file serves both copies).
+  - wave-00: `moves.tf` with 9 `moved` + 9 `removed` (hr-portal's `for_each` instances and both apps' signing-key entries) and 11 plain `removed` blocks; it-tools resources, the hr-portal map entry and claims removed from the code; `LAB-CA10` now lists only the `saml` map.
+  - wave-01: `app-it-tools.tf`, `app-hr-portal.tf` (plain resources, no cross-app `for_each`; assignments `for_each` over groups), `ca-policies.tf` (`LAB-CA11`, report-only, Finance, MFA, break-glass and owner excluded), `imports.tf`, `outputs.tf`. The one-time `msgraph_resource_action.it_tools_claims_create` is not carried over.
+  - Local plans, both copies identical in shape: wave-00 `0 to add, 1 to change, 0 to destroy` (CA10 drops 2 apps) and 20 "will no longer be managed by Terraform, but will not be destroyed"; wave-01 `15 to import, 4 to add, 2 to change, 0 to destroy`. The 2 changes are `+ use_existing = true` on the two service principals (a provider-only setting, nothing sent to Entra); the 4 adds are `LAB-CA11` and three `msgraph_update_resource` that PATCH the current values. All 15 import IDs worked as written in state, including `azuread_application_from_template` and token signing certificates.
+  - Change issue #13, PR #14. Pipeline plan run 40380004982: `change-gate / check`, `policy-selftest`, `plan (lab)`, `plan (lab-np)` all pass, with the same plan lines as local. Not merged yet.
+- Time taken: about 50 minutes.
+- Evidence: issue #13, PR #14, run 40380004982.
+- Change to the client plan, if any: import IDs for a wave move come from `terraform state pull` of the source wave, not from the portal; generate the import file with a script so no ID is typed by hand.
+- Accepted risks added, if any: none.

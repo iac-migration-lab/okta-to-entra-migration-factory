@@ -4,7 +4,7 @@ Move applications from **Okta** to **Microsoft Entra ID** "as code": every app, 
 
 This repo is a working proof of concept, built on free accounts with dummy data. It is also a step-by-step guide you can follow to run the same migration on your own lab, and later adapt to a real environment.
 
-> **Status (updated 2026-10-26):** Run 1, Lab Phase 4 in progress. Lab Phases 1 to 3 complete: Okta discovery and nightly snapshot, Entra brownfield import, 4 SAML apps and 1 OIDC app translated, and the pipeline with all four exit tests passed. Wave-01 is planned ([docs/wave-01-plan.md](docs/wave-01-plan.md)): `it-tools` and `hr-portal` move from wave-00, get tested through Entra, then lose their Okta assignments; a rollback drill is timed on `it-tools`. Next: the move PR. Must finish by 2026-11-15 (P2 trial). Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
+> **Status (updated 2026-10-26):** Run 1, Lab Phase 4 in progress. Lab Phases 1 to 3 complete: Okta discovery and nightly snapshot, Entra brownfield import, 4 SAML apps and 1 OIDC app translated, and the pipeline with all four exit tests passed. Wave-01 is planned ([docs/wave-01-plan.md](docs/wave-01-plan.md)): `it-tools` and `hr-portal` move from wave-00, get tested through Entra, then lose their Okta assignments; a rollback drill is timed on `it-tools`. The move PR (#14) is open with green plans: nothing destroyed, 15 objects imported into wave-01, new report-only `LAB-CA11`. Next: merge it and approve prod, then the hr-portal claims PR. Must finish by 2026-11-15 (P2 trial). Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
 
 > **Lab only.** Personal free accounts, fictional users, nothing to do with any company or client. Do not point this repo at a production tenant without reading [Adapting this to your own environment](#adapting-this-to-your-own-environment).
 
@@ -346,7 +346,7 @@ Graph permissions: reader and planner `Directory.Read.All`, `Policy.Read.All`; a
 
 ### Lab Phase 4: Cutover wave and rollback (Step 4) 🚧 in progress
 
-**4.1 Wave plan:** pick two apps from wave-00 (one low risk, one "tier 1") and move them into `entra/waves/wave-01/` through a PR with a change ticket and approval. ✅ Planned 2026-10-26 in [docs/wave-01-plan.md](docs/wave-01-plan.md): `it-tools` (low risk, 2-day window) and `hr-portal` (tier 1, 5-day window), chosen by a risk score. The apps move without a rebuild: `moved` + `removed` blocks in wave-00, `import` blocks in wave-01.
+**4.1 Wave plan:** pick two apps from wave-00 (one low risk, one "tier 1") and move them into `entra/waves/wave-01/` through a PR with a change ticket and approval. ✅ Planned 2026-10-26 in [docs/wave-01-plan.md](docs/wave-01-plan.md): `it-tools` (low risk, 2-day window) and `hr-portal` (tier 1, 5-day window), chosen by a risk score. The apps move without a rebuild: `moved` + `removed` blocks in wave-00, `import` blocks in wave-01. 🚧 Move PR #14 open 2026-10-26 (create the wave-01 state files with your own login first, as for every new root).
 
 **4.2 Okta cutover identity** `iac-okta-cutover`: an Okta service app with only `okta.apps.manage`, switched on for the wave and off afterwards.
 
@@ -468,4 +468,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-26 (Run 1, Lab Phase 4 in progress: wave-01 planned in `docs/wave-01-plan.md`; Lab Phase 3 complete; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._
+_Last updated: 2026-10-26 (Run 1, Lab Phase 4 in progress: wave-01 planned in `docs/wave-01-plan.md`, move PR #14 open; Lab Phase 3 complete; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._
