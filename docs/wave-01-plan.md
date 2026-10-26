@@ -1,6 +1,6 @@
 # Wave 01 Plan: First Cutover Wave (Run 1, Lab Phase 4)
 
-Planned 2026-10-26. Status: **planned, nothing built yet.** Evidence and results go to [findings-log.md](findings-log.md); this file is the plan of record and is updated only when a decision changes.
+Planned 2026-10-26. Status: **steps 1 and 2 done 2026-10-26 (PR #14 applied); step 3 next.** Evidence and results go to [findings-log.md](findings-log.md); this file is the plan of record and is updated only when a decision changes.
 
 ## 1. Decision
 - **Apps:** `iac-saml-it-tools` (low risk) and `iac-saml-hr-portal` (tier 1).

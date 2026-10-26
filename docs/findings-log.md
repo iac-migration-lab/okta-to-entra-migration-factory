@@ -1,5 +1,5 @@
 Current run: 1 (Implementation Phase 0)
-Current lab phase: 4 (wave-01 planned 2026-10-26)
+Current lab phase: 4 (wave-01 move applied 2026-10-26; next: hr-portal claims PR)
 
 # Findings Log
 
@@ -675,4 +675,16 @@ Current phase set to 1 at the top of this log.
 - Time taken: about 50 minutes.
 - Evidence: issue #13, PR #14, run 40380004982.
 - Change to the client plan, if any: import IDs for a wave move come from `terraform state pull` of the source wave, not from the portal; generate the import file with a script so no ID is typed by hand.
+- Accepted risks added, if any: none.
+
+## 2026-10-26, Run 1, Lab Phase 4, wave-01 move applied (PR #14)
+- What the docs said: `docs/wave-01-plan.md` step 2: merge PR A, owner approves prod; wave-00 forgets the two apps, wave-01 imports them, nothing destroyed.
+- What actually happened:
+  - PR #14 merged (merge commit 8ebcdee). Apply run 40392556599: nonprod then prod, the owner approved prod.
+  - Both copies, same lines: wave-00 `Apply complete! Resources: 0 added, 1 changed, 0 destroyed.` (CA10); wave-01 `Apply complete! Resources: 15 imported, 4 added, 2 changed, 0 destroyed.`; every post-apply plan `No changes.`
+  - Checked with `az ad sp list` after apply: the four service principals (prod and nonprod hr-portal and it-tools) have the same object IDs as in `imports.tf`, SSO mode `saml`, an active signing key. `LAB-CA11` and `LAB-NP-CA11` exist, report-only.
+  - Change issue #13 closed, label `change:closed`.
+- Time taken: about 15 minutes, most of it waiting for the prod approval.
+- Evidence: PR #14, run 40392556599, issue #13.
+- Change to the client plan, if any: none. Follow-up: a small PR that deletes `entra/waves/wave-00/moves.tf` and `entra/waves/wave-01/imports.tf` (one-time blocks, done their job); its plans must show no changes.
 - Accepted risks added, if any: none.
