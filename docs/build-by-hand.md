@@ -31,7 +31,7 @@ Every step to build this lab yourself, in order, with no AI assistant: Okta read
 15. Daily operation
 16. Troubleshooting (lab 1 lessons)
 
-Planned but not yet run in lab 1: the cutover wave and rollback drill (Lab Phase 4). See [build-phases.md](build-phases.md) and the wave plan [wave-01-plan.md](wave-01-plan.md). To move apps from one wave to another: create the new wave's state files with your own login (`terraform init -backend-config=container_name=<container>` for both containers), read the old IDs with `terraform state pull`, write `import` blocks in the new wave and `moved` + `removed` (destroy = false) blocks in the old one, then open one PR (lab 1: PR #14).
+Planned but not yet run in lab 1: the cutover wave and rollback drill (Lab Phase 4). See [build-phases.md](build-phases.md) and the wave plan [wave-01-plan.md](wave-01-plan.md). To move apps from one wave to another: create the new wave's state files with your own login (`terraform init -backend-config=container_name=<container>` for both containers), read the old IDs with `terraform state pull`, write `import` blocks in the new wave and `moved` + `removed` (destroy = false) blocks in the old one, then open one PR (lab 1: PR #14). After both copies apply, delete the one-time files in the next PR (lab 1: PR #16). hr-portal claims: a msgraph custom claims policy (one-time PUT, then an update resource), and groups from the app registration, because the policy has no group claim type (lab 1: PR #16).
 
 ---
 
@@ -532,4 +532,5 @@ Drift is never fixed automatically. Either put the portal change back, or codify
 | New Okta users cannot sign in ("Unable to sign in", ENROLL in the system log) | Built-in Okta Dashboard policy requires 2FA | Seed script sets its catch-all to password only |
 | `az ad group update`: "'update' is misspelled or not recognized" | Azure CLI has no group update command | `az rest --method PATCH` on Graph `v1.0/groups/<id>` |
 | `Error: Resource instance keys not allowed` on a `removed` block | `removed` cannot name one instance of a `for_each` resource | `moved` the instance to a plain name, then `removed` that name, in the same change (wave-01 plan section 4) |
+| No `groups` attribute in the SAML response | The custom claims policy cannot emit groups | On the app registration: `group_membership_claims = ["ApplicationGroup"]` and a `saml2_token` optional claim `groups` with `cloud_displayname` |
 | Microsoft 365 trial checkout asks for a billing profile, then fails | Commerce flow from the wrong account | Start the trial from Entra admin center → Licenses → Try/Buy as a work account in the tenant |

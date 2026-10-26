@@ -4,7 +4,7 @@ Move applications from **Okta** to **Microsoft Entra ID** "as code": every app, 
 
 This repo is a working proof of concept, built on free accounts with dummy data. It is also a step-by-step guide you can follow to run the same migration on your own lab, and later adapt to a real environment.
 
-> **Status (updated 2026-10-26):** Run 1, Lab Phase 4 in progress. Lab Phases 1 to 3 complete: Okta discovery and nightly snapshot, Entra brownfield import, 4 SAML apps and 1 OIDC app translated, and the pipeline with all four exit tests passed. Wave-01 is planned ([docs/wave-01-plan.md](docs/wave-01-plan.md)): `it-tools` and `hr-portal` move from wave-00, get tested through Entra, then lose their Okta assignments; a rollback drill is timed on `it-tools`. The move (PR #14) is applied in both copies: nothing destroyed, 15 objects imported into wave-01, new report-only `LAB-CA11`. Next: the hr-portal claims PR. Must finish by 2026-11-15 (P2 trial). Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
+> **Status (updated 2026-10-26):** Run 1, Lab Phase 4 in progress. Lab Phases 1 to 3 complete: Okta discovery and nightly snapshot, Entra brownfield import, 4 SAML apps and 1 OIDC app translated, and the pipeline with all four exit tests passed. Wave-01 is planned ([docs/wave-01-plan.md](docs/wave-01-plan.md)): `it-tools` and `hr-portal` move from wave-00, get tested through Entra, then lose their Okta assignments; a rollback drill is timed on `it-tools`. The move (PR #14) is applied in both copies: nothing destroyed, 15 objects imported into wave-01, new report-only `LAB-CA11`. The hr-portal claims PR (#16) is open: claims move to the custom claims policy and a `groups` claim is added. Next: merge it and approve prod, then the sign-in tests. Must finish by 2026-11-15 (P2 trial). Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
 
 > **Lab only.** Personal free accounts, fictional users, nothing to do with any company or client. Do not point this repo at a production tenant without reading [Adapting this to your own environment](#adapting-this-to-your-own-environment).
 
@@ -346,7 +346,7 @@ Graph permissions: reader and planner `Directory.Read.All`, `Policy.Read.All`; a
 
 ### Lab Phase 4: Cutover wave and rollback (Step 4) 🚧 in progress
 
-**4.1 Wave plan:** pick two apps from wave-00 (one low risk, one "tier 1") and move them into `entra/waves/wave-01/` through a PR with a change ticket and approval. ✅ Planned 2026-10-26 in [docs/wave-01-plan.md](docs/wave-01-plan.md): `it-tools` (low risk, 2-day window) and `hr-portal` (tier 1, 5-day window), chosen by a risk score. The apps move without a rebuild: `moved` + `removed` blocks in wave-00, `import` blocks in wave-01. ✅ Moved by PR #14, applied 2026-10-26: 0 destroyed, 15 imported, same object IDs (create the wave-01 state files with your own login first, as for every new root).
+**4.1 Wave plan:** pick two apps from wave-00 (one low risk, one "tier 1") and move them into `entra/waves/wave-01/` through a PR with a change ticket and approval. ✅ Planned 2026-10-26 in [docs/wave-01-plan.md](docs/wave-01-plan.md): `it-tools` (low risk, 2-day window) and `hr-portal` (tier 1, 5-day window), chosen by a risk score. The apps move without a rebuild: `moved` + `removed` blocks in wave-00, `import` blocks in wave-01. ✅ Moved by PR #14, applied 2026-10-26: 0 destroyed, 15 imported, same object IDs (create the wave-01 state files with your own login first, as for every new root). 🚧 hr-portal claims PR #16 open: custom claims policy plus a `groups` claim from the app registration; the one-time move files deleted.
 
 **4.2 Okta cutover identity** `iac-okta-cutover`: an Okta service app with only `okta.apps.manage`, switched on for the wave and off afterwards.
 
@@ -398,6 +398,7 @@ The biggest surprises from run 1. Full details and evidence in [docs/findings-lo
 | Approvals | One person cannot approve their own PR or their own prod deployment; a "Require approvals" box left on blocked the merge | One-person lab: 0 PR approvals, self-review off. Production: name two reviewers before the first wave |
 | Claims | A portal edit to claims is invisible unless the claims are in code; the portal can also show the wrong claims | Put every app's claims in code with the msgraph custom claims policy; review the diff after any portal touch |
 | Drift | The drift job opens one issue, then comments on it for every later run until it is closed | Close the drift issue only after the reconcile PR applies and a drift run is clean. Putting a value back needs a `.tf` change to start the apply; run 1 used a comment-only PR |
+| Group claims | The custom claims policy has no group claim type, and Okta sends group names while Entra sends its own (`iac-it`, not `IT`) | Set groups on the app registration (`group_membership_claims`, a SAML optional claim with `cloud_displayname`); agree the value change with the app owner |
 | Moving apps between waves | A `removed` block cannot name one instance of a `for_each` resource ("Resource instance keys not allowed") | `moved` the instance to a plain name and `removed` that name in the same change; `import` in the new wave. Keep one app per resource where you can |
 
 ---
@@ -468,4 +469,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-26 (Run 1, Lab Phase 4 in progress: wave-01 planned in `docs/wave-01-plan.md`, move PR #14 applied; Lab Phase 3 complete; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._
+_Last updated: 2026-10-26 (Run 1, Lab Phase 4 in progress: wave-01 planned in `docs/wave-01-plan.md`, move PR #14 applied, hr-portal claims PR #16 open; Lab Phase 3 complete; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._
