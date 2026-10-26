@@ -1,0 +1,15 @@
+{
+  "_comment": "Okta app and group IDs for okta-cutover.yml (from okta-inventory/imports.tf). Groups in assignment priority order. Lab org integrator-2631921.",
+  "iac-saml-it-tools": {
+    "app_id": "0oa18sc4rb0oNOWxW698",
+    "groups": [{ "name": "IT", "id": "00g18sc4r6df83yDe698" }]
+  },
+  "iac-saml-hr-portal": {
+    "app_id": "0oa18sc2q56pVIkoF698",
+    "groups": [
+      { "name": "IT", "id": "00g18sc4r6df83yDe698" },
+      { "name": "CustServ", "id": "00g18sc660tmWyUj0698" },
+      { "name": "Finance", "id": "00g18sc2sxyLBvB1J698" }
+    ]
+  }
+}

@@ -1,5 +1,5 @@
-# Reusable change gate (docs/change-gate-design.md). Called by plan.yml (with the PR number) and apply.yml
-# (PR resolved from the merge commit). Lab adapter: GitHub Issues; a real ITSM is another adapter in the script.
+# Reusable change gate (docs/change-gate-design.md). Called by plan.yml (with the PR number), apply.yml
+# (PR resolved from the merge commit) and okta-cutover.yml (change named in the run inputs). Lab adapter: GitHub Issues; a real ITSM is another adapter in the script.
 name: change-gate
 
 on:
@@ -7,6 +7,10 @@ on:
     inputs:
       pr_number:
         description: Pull request number; empty means "find the PR for this commit"
+        type: string
+        default: ""
+      change_ref:
+        description: Change record for a run with no PR, e.g. github:17 (okta-cutover.yml)
         type: string
         default: ""
 
@@ -24,5 +28,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ inputs.pr_number }}
+          CHANGE_REF: ${{ inputs.change_ref }}
           SHA: ${{ github.sha }}
         run: .github/scripts/change-gate.sh

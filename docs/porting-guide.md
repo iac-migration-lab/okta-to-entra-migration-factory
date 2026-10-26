@@ -69,6 +69,8 @@ Collect the new values first (fill in the right-hand column), then replace them 
 | Okta base URL | `okta.com` | `okta-inventory/providers.tf` (`base_url`) | |
 | Okta reader client ID | `0oa18siafpuScaofm698` | `okta-inventory/providers.tf` (`client_id`); GitHub variable `OKTA_CLIENT_ID` | |
 | Okta reader key ID | `iac-okta-reader-2026-10-16` | GitHub variable `OKTA_KEY_ID`; local `OKTA_API_PRIVATE_KEY_ID` | |
+| Okta cutover client ID and key ID | `0oa1965gqj5LStpWJ698`, `iac-okta-cutover-2026-10-26` | GitHub environment `okta-cutover` variables `OKTA_CUTOVER_CLIENT_ID`, `OKTA_CUTOVER_KEY_ID` | Create the app first (build-by-hand, Lab Phase 4 note) |
+| Okta wave app and group IDs | `0oa18sc4rb0oNOWxW698`, `00g18sc4r6df83yDe698`, … | `.github/okta-cutover-apps.json`; org URL in `.github/workflows/okta-cutover.yml` | Copy from `okta-inventory/imports.tf` after regenerating it |
 | Okta test user login domain | `iaclab.example` | `okta-inventory/seed/seed-okta-org.sh` (`LOGIN_DOMAIN`), `okta-inventory/seed/reset-seed-passwords.sh` | |
 | Lab mailbox (seed user emails, budget alerts) | `la-migration-lab` @ `outlook.com` | `okta-inventory/seed/seed-okta-org.sh` (`MAIL_BASE`, `MAIL_DOMAIN`), `azure/bootstrap/budget.tf` (`contact_emails`) | |
 | Entra tenant ID | `bed5d4c3-98f0-4c73-9e4c-0b6cd3b9a0a4` | `entra/legacy/tenants/lab.tfvars`, `entra/platform/tenants/lab.tfvars` and `lab-np.tfvars`, `entra/waves/wave-00/tenants/lab.tfvars` and `lab-np.tfvars`, `entra/waves/wave-01/tenants/lab.tfvars` and `lab-np.tfvars`; GitHub variable `AZURE_TENANT_ID` | |

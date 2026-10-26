@@ -1,0 +1,69 @@
+# Okta cutover for a wave (Lab Phase 4, docs/wave-01-plan.md steps 6 to 9). Run by hand from main:
+#   remove  = delete the app's Okta group assignments (users reach it only through Entra)
+#   restore = put them back (rollback)
+#   list    = show them, no change, no change record needed
+# Runs as iac-okta-cutover (okta.apps.manage, App Administrator on the wave's apps), which stays deactivated
+# between waves: an admin activates it for the window. remove and restore need a change issue in its window.
+name: okta-cutover
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: Okta app (label)
+        type: choice
+        options: [iac-saml-it-tools, iac-saml-hr-portal]
+      action:
+        description: list, remove (cutover) or restore (rollback)
+        type: choice
+        options: [list, remove, restore]
+        default: list
+      change:
+        description: Change record for remove or restore, e.g. github:17
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  group: okta-cutover
+  cancel-in-progress: false
+
+jobs:
+  change-gate:
+    if: inputs.action != 'list'
+    uses: ./.github/workflows/change-gate.yml
+    with:
+      change_ref: ${{ inputs.change }}
+
+  cutover:
+    needs: change-gate
+    if: always() && (needs.change-gate.result == 'success' || (inputs.action == 'list' && needs.change-gate.result == 'skipped'))
+    runs-on: ubuntu-24.04
+    environment: okta-cutover # owner approves each run
+    env:
+      OKTA_ORG_URL: https://integrator-2631921.okta.com
+      OKTA_CLIENT_ID: ${{ vars.OKTA_CUTOVER_CLIENT_ID }}
+      OKTA_KEY_ID: ${{ vars.OKTA_CUTOVER_KEY_ID }}
+      APP: ${{ inputs.app }}
+      ACTION: ${{ inputs.action }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Okta private key to a temp file
+        env:
+          OKTA_PRIVATE_KEY: ${{ secrets.OKTA_CUTOVER_PRIVATE_KEY }}
+        run: |
+          umask 077
+          printf '%s\n' "$OKTA_PRIVATE_KEY" > "$RUNNER_TEMP/okta-cutover.pem"
+          echo "OKTA_PRIVATE_KEY_FILE=$RUNNER_TEMP/okta-cutover.pem" >> "$GITHUB_ENV"
+
+      - name: ${{ inputs.action }} ${{ inputs.app }}
+        run: .github/scripts/okta-cutover.sh
+
+      - name: Remove key file
+        if: always()
+        run: rm -f "$RUNNER_TEMP/okta-cutover.pem"
