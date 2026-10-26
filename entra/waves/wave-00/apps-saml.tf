@@ -17,11 +17,6 @@ locals {
       identifier = "https://sptest.iamshowcase.com/${var.name_prefix}-saml-finance-ledger"
       groups     = ["finance"]
     }
-    hr_portal = {
-      name       = "${var.name_prefix}-saml-hr-portal"
-      identifier = "https://sptest.iamshowcase.com/${var.name_prefix}-saml-hr-portal"
-      groups     = ["it", "custserv", "finance"]
-    }
   }
 
   saml_user_role_id = "18d14569-c3bd-439b-9a66-3a2aee01d14f"
@@ -31,7 +26,8 @@ locals {
   ]...)
 }
 
-# Three apps through azuread_application with template_id ...
+# The apps through azuread_application with template_id. (it-tools, built with azuread_application_from_template
+# to compare the two, and hr-portal moved to entra/waves/wave-01 on 2026-10-26; see moves.tf.)
 # Instantiating the template also adds a user_impersonation OAuth2 scope ("TERRAFORM_INSTANTIATE_<guid>") that
 # this config does not declare, so the first apply leaves a diff; the pipeline's post-apply plan applies once more
 # to remove it (.github/scripts/tf-roots.sh, findings 2026-10-20).
@@ -99,59 +95,12 @@ resource "azuread_app_role_assignment" "saml" {
   app_role_id         = local.saml_user_role_id
 }
 
-# ... and one through azuread_application_from_template, to compare the two (build-phases step 5).
-resource "azuread_application_from_template" "it_tools" {
-  display_name = "${var.name_prefix}-saml-it-tools"
-  template_id  = local.non_gallery_template_id
-}
-
-resource "azuread_application_identifier_uri" "it_tools" {
-  application_id = azuread_application_from_template.it_tools.application_id
-  identifier_uri = "https://sptest.iamshowcase.com/${var.name_prefix}-saml-it-tools"
-
-  depends_on = [azuread_service_principal.it_tools] # SAML mode first (see top of file)
-}
-
-resource "azuread_application_redirect_uris" "it_tools" {
-  application_id = azuread_application_from_template.it_tools.application_id
-  type           = "Web"
-  redirect_uris  = [local.acs_url]
-}
-
-data "azuread_application" "it_tools" {
-  object_id = azuread_application_from_template.it_tools.application_object_id
-}
-
-resource "azuread_service_principal" "it_tools" {
-  client_id                     = data.azuread_application.it_tools.client_id
-  use_existing                  = true
-  preferred_single_sign_on_mode = "saml"
-  app_role_assignment_required  = true
-
-  feature_tags {
-    enterprise            = true
-    custom_single_sign_on = true
-  }
-}
-
-resource "azuread_service_principal_token_signing_certificate" "it_tools" {
-  service_principal_id = azuread_service_principal.it_tools.id
-  display_name         = "CN=${var.name_prefix}-saml-it-tools"
-}
-
-resource "azuread_app_role_assignment" "it_tools" {
-  resource_object_id  = azuread_service_principal.it_tools.object_id
-  principal_object_id = data.azuread_group.staff["it"].object_id
-  app_role_id         = one([for r in azuread_service_principal.it_tools.app_roles : r.id if r.display_name == "User"])
-}
-
 # azuread 3.10.0 creates the signing certificate but cannot make it active (no preferredTokenSigningKeyThumbprint
 # on azuread_service_principal). Without it Entra has no active SAML signing key. Gap filled with msgraph.
 locals {
-  saml_signing = merge(
-    { for k, sp in azuread_service_principal.saml : k => { sp = sp.object_id, thumbprint = azuread_service_principal_token_signing_certificate.saml[k].thumbprint } },
-    { it_tools = { sp = azuread_service_principal.it_tools.object_id, thumbprint = azuread_service_principal_token_signing_certificate.it_tools.thumbprint } },
-  )
+  saml_signing = {
+    for k, sp in azuread_service_principal.saml : k => { sp = sp.object_id, thumbprint = azuread_service_principal_token_signing_certificate.saml[k].thumbprint }
+  }
 }
 
 resource "msgraph_update_resource" "saml_active_signing_key" {

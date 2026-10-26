@@ -71,11 +71,11 @@ Collect the new values first (fill in the right-hand column), then replace them 
 | Okta reader key ID | `iac-okta-reader-2026-10-16` | GitHub variable `OKTA_KEY_ID`; local `OKTA_API_PRIVATE_KEY_ID` | |
 | Okta test user login domain | `iaclab.example` | `okta-inventory/seed/seed-okta-org.sh` (`LOGIN_DOMAIN`), `okta-inventory/seed/reset-seed-passwords.sh` | |
 | Lab mailbox (seed user emails, budget alerts) | `la-migration-lab` @ `outlook.com` | `okta-inventory/seed/seed-okta-org.sh` (`MAIL_BASE`, `MAIL_DOMAIN`), `azure/bootstrap/budget.tf` (`contact_emails`) | |
-| Entra tenant ID | `bed5d4c3-98f0-4c73-9e4c-0b6cd3b9a0a4` | `entra/legacy/tenants/lab.tfvars`, `entra/platform/tenants/lab.tfvars` and `lab-np.tfvars`, `entra/waves/wave-00/tenants/lab.tfvars` and `lab-np.tfvars`; GitHub variable `AZURE_TENANT_ID` | |
+| Entra tenant ID | `bed5d4c3-98f0-4c73-9e4c-0b6cd3b9a0a4` | `entra/legacy/tenants/lab.tfvars`, `entra/platform/tenants/lab.tfvars` and `lab-np.tfvars`, `entra/waves/wave-00/tenants/lab.tfvars` and `lab-np.tfvars`, `entra/waves/wave-01/tenants/lab.tfvars` and `lab-np.tfvars`; GitHub variable `AZURE_TENANT_ID` | |
 | Entra tenant domain | `lamigrationlaboutlook.onmicrosoft.com` | Test user names (created by hand, section 5 of build-by-hand) | |
 | Azure subscription ID | `6ea51c80-90de-4914-bbc6-2af9b54bba9f` | `azure/bootstrap/providers.tf`, `azure/bootstrap/budget.tf` (two places) | |
 | Azure resource group | `rg-iac-lab` | Creation commands only | |
-| Storage account (globally unique) | `stiaclabtfstate02` | Every `backend.tf` (`okta-inventory/`, `azure/bootstrap/`, `entra/legacy/`, `entra/platform/`, `entra/waves/wave-00/`), `.github/workflows/snapshot.yml` (`--account-name`) | |
+| Storage account (globally unique) | `stiaclabtfstate02` | Every `backend.tf` (`okta-inventory/`, `azure/bootstrap/`, `entra/legacy/`, `entra/platform/`, `entra/waves/wave-00/`, `entra/waves/wave-01/`), `.github/workflows/snapshot.yml` (`--account-name`) | |
 | State containers | `tfstate-prod`, `tfstate-nonprod`, `okta-exports` | Keep the names (they are also in `.github/scripts/tf-roots.sh`) unless you have a reason | |
 | GitHub org / repo | `iac-migration-lab` / `okta-to-entra-migration-factory` | Federated credential subjects; `docs/git-check-plans-info.md` commands; README; `docs/inventory-counts.md` (link to the counts branch) | |
 | GitHub org ID / repo ID | `336396784` / `1399352055` | Federated credential subjects only (not in code) | |
@@ -84,12 +84,13 @@ Collect the new values first (fill in the right-hand column), then replace them 
 
 | Value | Lab 1 value | Files | When you know it |
 |---|---|---|---|
-| `bg-ca-exclusion` group object ID | `21008cb0-56d6-4fc4-9f1c-9e20dc1d5620` | `entra/legacy/locals.tf`, `entra/waves/wave-00/data.tf`, **`policy/ca-break-glass.rego`**, **`policy/fixtures/pass-plan.json`** | After creating the break-glass group |
-| Owner account object ID (excluded from CA) | `b4a88d50-ea8b-48e2-8853-7e4bd1c1c841` | `entra/legacy/locals.tf`, `entra/waves/wave-00/data.tf` | After sign-up: `az ad signed-in-user show --query id -o tsv` |
+| `bg-ca-exclusion` group object ID | `21008cb0-56d6-4fc4-9f1c-9e20dc1d5620` | `entra/legacy/locals.tf`, `entra/waves/wave-00/data.tf`, `entra/waves/wave-01/data.tf`, **`policy/ca-break-glass.rego`**, **`policy/fixtures/pass-plan.json`** | After creating the break-glass group |
+| Owner account object ID (excluded from CA) | `b4a88d50-ea8b-48e2-8853-7e4bd1c1c841` | `entra/legacy/locals.tf`, `entra/waves/wave-00/data.tf`, `entra/waves/wave-01/data.tf` | After sign-up: `az ad signed-in-user show --query id -o tsv` |
 | `iac-lab-admin` object ID | `1028c48b-19bd-4852-85a4-2cd92e274b06` | `entra/legacy/groups.tf` (brownfield group member) | After creating the admin |
 | Okta built-in default authentication policy ID | `rst188pzg3iEP5uGh698` | `okta-inventory/groups.tf` (`default_app_signon_policy_id`) | After the seed; read it from the Admin Console or the API |
 | Okta object IDs (29 import blocks) | `00g...`, `0oa...`, `rst...` | `okta-inventory/imports.tf`, IDs inside `okta-inventory/*.tf` | After the seed (regenerate, section 6) |
 | Entra brownfield object IDs (9 import blocks) | various | `entra/legacy/imports.tf`, `entra/legacy/*.tf` | After building the brownfield objects (regenerate, section 6) |
+| wave-01 move: wave-00 object IDs (15 import blocks per copy) | various | `entra/waves/wave-01/imports.tf`, `entra/waves/wave-00/moves.tf` | Do not port. Both files only move apps that already exist between state files, and are deleted after the move. In a new build, write each app in its wave folder from the start |
 | Pipeline app client IDs | `iac-reader`, `iac-planner`, `iac-applier` appIds | GitHub variables only: `READER_CLIENT_ID`, `PLANNER_CLIENT_ID`, `APPLIER_CLIENT_ID`, and `AZURE_CLIENT_ID` (environment `okta-read`) | After creating the app registrations |
 
 **Do not change:** `non_gallery_template_id` (`8adf8e6e-...`), the SAML `User` role ID (`18d14569-...`), the Zoom gallery template and role IDs in `entra/legacy/app-zoom.tf`, and the all-zeros default access role. These are Microsoft-wide constants, the same in every tenant.
@@ -97,7 +98,7 @@ Collect the new values first (fill in the right-hand column), then replace them 
 ### 3.3 Test targets (change only if you use other testers)
 | Value | Files |
 |---|---|
-| SAML test site `https://sptest.iamshowcase.com/acs`, audience `IAMShowcase` | `okta-inventory/seed/seed-okta-org.sh`, `okta-inventory/app-iac-saml-*.tf`, `entra/waves/wave-00/apps-saml.tf`, `entra/waves/wave-00/data.tf` |
+| SAML test site `https://sptest.iamshowcase.com/acs`, audience `IAMShowcase` | `okta-inventory/seed/seed-okta-org.sh`, `okta-inventory/app-iac-saml-*.tf`, `entra/waves/wave-00/apps-saml.tf`, `entra/waves/wave-00/data.tf`, `entra/waves/wave-01/app-*.tf`, `entra/waves/wave-01/data.tf` |
 | OIDC tester `https://oidcdebugger.com/debug` | `okta-inventory/seed/seed-okta-org.sh`, `okta-inventory/app-iac-oidc-portal.tf`, `entra/waves/wave-00/app-oidc.tf` |
 
 ### 3.4 Docs that name lab 1

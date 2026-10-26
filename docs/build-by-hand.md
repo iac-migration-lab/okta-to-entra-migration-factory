@@ -31,7 +31,7 @@ Every step to build this lab yourself, in order, with no AI assistant: Okta read
 15. Daily operation
 16. Troubleshooting (lab 1 lessons)
 
-Planned but not yet run in lab 1: the cutover wave and rollback drill (Lab Phase 4). See [build-phases.md](build-phases.md) and the wave plan [wave-01-plan.md](wave-01-plan.md).
+Planned but not yet run in lab 1: the cutover wave and rollback drill (Lab Phase 4). See [build-phases.md](build-phases.md) and the wave plan [wave-01-plan.md](wave-01-plan.md). To move apps from one wave to another: create the new wave's state files with your own login (`terraform init -backend-config=container_name=<container>` for both containers), read the old IDs with `terraform state pull`, write `import` blocks in the new wave and `moved` + `removed` (destroy = false) blocks in the old one, then open one PR (lab 1: PR #14).
 
 ---
 
