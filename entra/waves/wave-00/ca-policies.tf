@@ -10,10 +10,7 @@ resource "azuread_conditional_access_policy" "lab_ca10" {
     client_app_types = ["all"]
 
     applications {
-      included_applications = concat(
-        [for sp in azuread_service_principal.saml : sp.client_id],
-        [azuread_service_principal.it_tools.client_id],
-      )
+      included_applications = [for sp in azuread_service_principal.saml : sp.client_id] # wave-01 apps: LAB-CA11
     }
 
     users {
