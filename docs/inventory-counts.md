@@ -7,7 +7,7 @@ Written by `.github/workflows/snapshot.yml` from org `integrator-2631921.okta.co
 | Users ACTIVE | 9 |
 | Users PROVISIONED | 1 |
 | Groups (custom) | 3 |
-| Apps (visible to reader) | 7 |
+| Apps (visible to reader) | 8 |
 | App group assignments | 8 |
 | Network zones (all) | 5 |
 | Password policies (non-system) | 1 |
