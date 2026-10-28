@@ -419,7 +419,7 @@ These hold in the lab and should hold anywhere you use this method.
 
 ## 9. Adapting this to your own environment
 
-To run the lab on your own accounts, follow [docs/porting-guide.md](docs/porting-guide.md): it lists every value to replace, with file paths, and the rebuild order. To build it all without an AI assistant, use [docs/build-by-hand.md](docs/build-by-hand.md). The main values:
+To run the lab on your own accounts, follow [docs/porting-guide.md](docs/porting-guide.md): it lists every value to replace, with file paths, and the rebuild order. To build it all without an AI assistant, use [docs/build-by-hand.md](docs/build-by-hand.md). Both guides are written for a Windows 10 or 11 PC through WSL2 (Windows Subsystem for Linux, Ubuntu 24.04); Mac and Linux installs are in [docs/tool-install.md](docs/tool-install.md). The main values:
 
 | What | Where | Lab value |
 |---|---|---|
@@ -469,4 +469,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-26 (Run 1, Lab Phase 4 in progress: wave-01 planned in `docs/wave-01-plan.md`, move PR #14 applied, hr-portal claims PR #16 applied, sign-in tests passed, Okta cutover identity built; Lab Phase 3 complete; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._
+_Last updated: 2026-10-28 (build-by-hand and porting guide rewritten for Windows through WSL2; Run 1, Lab Phase 4 in progress: wave-01 planned in `docs/wave-01-plan.md`, move PR #14 applied, hr-portal claims PR #16 applied, sign-in tests passed, Okta cutover identity built; Lab Phase 3 complete; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._

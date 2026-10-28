@@ -7,6 +7,8 @@ Read with:
 - [lab-naming.md](lab-naming.md): the names this lab uses.
 - [okta-identity-engine-decision.md](okta-identity-engine-decision.md): the new Okta org must run Identity Engine.
 
+**Your computer:** written for Windows 10 or 11 through WSL2 (Windows Subsystem for Linux, version 2). Set up WSL2, Ubuntu 24.04 and the tools first (build-by-hand part 2). Run every `bash` block below in the **Ubuntu** terminal, not PowerShell, and keep the repo inside Ubuntu's home folder (`~/Projects/...`), never under `/mnt/c/...`. The repo's `.gitattributes` keeps Linux line endings, so the bash scripts run unchanged.
+
 ## 1. What moves and what does not
 
 | Thing | Moves? | Why |
@@ -26,7 +28,8 @@ Read with:
 Recommended: a fresh repo with a clean history, keeping the old lab's docs as an archive.
 
 ```bash
-# 1. Copy the files without the old history
+# 1. Copy the files without the old history (Ubuntu terminal; ~ is /home/<linux-user>)
+mkdir -p ~/Projects
 git clone https://github.com/iac-migration-lab/okta-to-entra-migration-factory.git ~/Projects/<new-repo>
 cd ~/Projects/<new-repo>
 rm -rf .git
@@ -59,7 +62,7 @@ gh api repos/<new-org>/<new-repo>/actions/oidc/customization/sub
 
 ## 3. Every value to replace
 
-Collect the new values first (fill in the right-hand column), then replace them file by file.
+Collect the new values first (fill in the right-hand column), then replace them file by file. Edit in VS Code (Visual Studio Code) with the WSL extension (`code .` from the repo folder in Ubuntu), not Windows Notepad, which can save Windows line endings into the scripts.
 
 ### 3.1 Values you choose or get at sign-up
 
@@ -126,7 +129,7 @@ A names-only subject (`repo:<org>/<repo>:...`) fails with `AADSTS700213`.
 
 ## 5. Find anything you missed
 
-After replacing, this must print nothing (run from the repo root):
+After replacing, this must print nothing (run from the repo root in the Ubuntu terminal):
 
 ```bash
 git grep -n -E "integrator-2631921|0oa18siafpuScaofm698|bed5d4c3-98f0|6ea51c80-90de|stiaclabtfstate02|21008cb0-56d6|b4a88d50-ea8b|1028c48b-19bd|rst188pzg3iEP5uGh698|336396784|1399352055|lamigrationlaboutlook|la-migration-lab|iac-migration-lab/okta-to-entra" -- ':!docs/archive'
@@ -138,13 +141,14 @@ Then run the checks:
 source lab-tools/env.sh
 terraform fmt -recursive -check
 policy/test.sh   # must end "policy self-test OK" (it uses the new bg-ca-exclusion ID)
+git ls-files --eol | grep -c 'w/crlf'   # must print 0: no Windows line endings crept in while editing
 ```
 
 ## 6. Rebuild order
 
 State is rebuilt, never copied. Follow [build-by-hand.md](build-by-hand.md) in order. The porting-specific points:
 
-1. **Accounts and tools** (build-by-hand parts 1 and 2). Check the Okta org is Identity Engine before anything else.
+1. **Accounts, WSL2 and tools** (build-by-hand parts 1 and 2). Check the Okta org is Identity Engine before anything else.
 2. **Seed Okta**, then **regenerate the Okta inventory:** replace every `id` in `okta-inventory/imports.tf` with the new org's IDs (the build-by-hand guide lists the API calls), set `default_app_signon_policy_id`, run `terraform plan -generate-config-out=generated.tf` only for objects whose settings differ, and plan until "No changes".
 3. **Azure state storage and `iac-reader`**, then move the Okta state into the new storage account.
 4. **Entra brownfield:** build the legacy objects by hand, then replace the IDs in `entra/legacy/imports.tf` and the `locals.tf` values. Plan until "No changes".
@@ -153,6 +157,7 @@ State is rebuilt, never copied. Follow [build-by-hand.md](build-by-hand.md) in o
 
 ## 7. Porting checklist
 
+- [ ] WSL2 Ubuntu 24.04 set up; repo and `~/.okta-lab/` inside the Ubuntu home folder
 - [ ] New Okta org is Identity Engine (`"pipeline": "idx"`)
 - [ ] Repo copied; old records archived; new findings log and permission register started
 - [ ] New public repo in a GitHub org; org ID, repo ID and subject format recorded

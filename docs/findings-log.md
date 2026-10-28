@@ -754,3 +754,11 @@ Current phase set to 1 at the top of this log.
 - Evidence: issue #17, PR #18, register #28 to #30.
 - Change to the client plan, if any: an Okta OAuth service app needs an admin role as well as scopes; target the role to the wave's apps. App admin roles still read every app, so the inventory of what the cutover identity can see is wider than what it can change. Activation of the cutover identity is an admin step per window (the identity cannot activate itself).
 - Accepted risks added, if any: run 1 creates the identity with the SSWS token and generates its key on the owner's Mac (register #28 "production should use").
+
+## 2026-10-28, Run 1, Lab Phase 4, Build-by-hand and porting guide rewritten for Windows
+- What the docs said: `docs/build-by-hand.md` and `docs/porting-guide.md` were written for a Mac, with a pointer to the command-differences table in `docs/tool-install.md` for Linux and Windows.
+- What actually happened: both rewritten for Windows 10 or 11 through WSL2 (Ubuntu 24.04), the Windows path `docs/tool-install.md` already supports. Build-by-hand part 2 now installs WSL2, sets `BROWSER=wslview`, and runs the Linux tool steps; clipboard saves use `powershell.exe -NoProfile -Command Get-Clipboard | tr -d '\r'` instead of `pbpaste`; `brew install gh jq` is gone (apt installs them); new troubleshooting rows for line endings, `/mnt/c` permissions and browser sign-in. The porting guide adds a WSL2 note, an editor note, a checklist line and a line-ending check (`git ls-files --eol | grep -c 'w/crlf'` must print 0; checked on the Mac: 0). Every bash block is otherwise unchanged. Native PowerShell was considered and rejected: every repo script is bash.
+- Time taken: about 20 minutes.
+- Evidence: this commit.
+- Change to the client plan, if any: none. The Windows steps are not yet run end to end on a Windows PC; run 2 or a Windows build should log what differs.
+- Accepted risks added, if any: none.

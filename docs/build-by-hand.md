@@ -2,12 +2,18 @@
 
 Every step to build this lab yourself, in order, with no AI assistant: Okta read as code, Entra written as code, and a GitHub pipeline between them. Each part says what you do, how to check it worked, and what went wrong in lab 1.
 
-**Who this is for:** someone comfortable pasting commands into a Mac terminal and clicking through admin portals. You do not write Terraform from scratch; the code is in the repo.
+**Who this is for:** someone on a Windows 10 or 11 PC, comfortable pasting commands into a terminal and clicking through admin portals. You do not write Terraform from scratch; the code is in the repo.
 
 **Moving to new accounts?** Do [porting-guide.md](porting-guide.md) first. It lists every value to replace. This guide uses placeholders in `<angle brackets>` for those values.
 
 **Conventions**
-- Commands are written for a Mac. On Linux or Windows (WSL2), swap the few Mac-only commands (`pbpaste`, `pbcopy`, `open`) using the table in [tool-install.md](tool-install.md#commands-that-differ-from-the-mac-docs).
+- Commands are written for Windows through WSL2 (Windows Subsystem for Linux, version 2), which runs Ubuntu Linux inside Windows. Run every `bash` block in the **Ubuntu** terminal (Start menu → Ubuntu 24.04, or Windows Terminal → Ubuntu), never in PowerShell or Command Prompt. Only part 2's first block runs in PowerShell. Why not native Windows: every repo script is bash, and secret files rely on Linux permissions ([tool-install.md](tool-install.md#why-wsl2-not-native-windows)).
+- Keep the repo and `~/.okta-lab/` inside Ubuntu's own file system, never under `/mnt/c/...` (the C: drive): there `chmod 600` does not protect files and scripts can pick up Windows line endings.
+- Clipboard: copy in Windows as usual (`Ctrl+C`); save it to a file from Ubuntu with `powershell.exe -NoProfile -Command Get-Clipboard | tr -d '\r' > <file>`. To copy from Ubuntu, pipe to `clip.exe`.
+- Paste into the Ubuntu terminal with right-click or `Ctrl+Shift+V` (plain `Ctrl+V` may not paste).
+- "Private window" means Edge InPrivate (`Ctrl+Shift+N`) or Chrome Incognito in Windows.
+- Screenshots for `docs/evidence/`: `Win+Shift+S`, then save into the repo through File Explorer at `\\wsl$\Ubuntu-24.04\home\<linux-user>\Projects\okta-to-entra-migration\docs\evidence`.
+- The Ubuntu side was not run end to end in lab 1 (built on a Mac); mark anything that behaves differently in the findings log.
 - Run commands from the repo root unless a step says otherwise. Start every terminal session with `source lab-tools/env.sh`.
 - `UNVERIFIED:` marks a portal label or behavior not re-checked for this guide. Portals change; look for the nearest match.
 - Secrets live only in `~/.okta-lab/` (folder mode 700, files 600) and a password manager. Never in the repo, which is public.
@@ -15,7 +21,7 @@ Every step to build this lab yourself, in order, with no AI assistant: Okta read
 
 ## Contents
 1. Accounts
-2. Tools
+2. Windows setup and tools
 3. Repo
 4. Okta: seed the source org
 5. Okta: read-only identity
@@ -29,7 +35,7 @@ Every step to build this lab yourself, in order, with no AI assistant: Okta read
 13. Test users and sign-in tests
 14. Pipeline exit tests and drift
 15. Daily operation
-16. Troubleshooting (lab 1 lessons)
+16. Troubleshooting (lab 1 lessons, plus Windows setup)
 
 Planned but not yet run in lab 1: the cutover wave and rollback drill (Lab Phase 4). See [build-phases.md](build-phases.md) and the wave plan [wave-01-plan.md](wave-01-plan.md). To move apps from one wave to another: create the new wave's state files with your own login (`terraform init -backend-config=container_name=<container>` for both containers), read the old IDs with `terraform state pull`, write `import` blocks in the new wave and `moved` + `removed` (destroy = false) blocks in the old one, then open one PR (lab 1: PR #14). **Okta cutover identity:** an API Services app `iac-okta-cutover` like the reader (part 5), with the one scope `okta.apps.manage`, and **Admin roles** → App Administrator → **Applications**: only the wave's apps (an OAuth service app needs a role as well as scopes). Without a target the role covers every app. Put the key in GitHub environment `okta-cutover` (required reviewer, `main` only): `gh secret set OKTA_CUTOVER_PRIVATE_KEY --env okta-cutover < ~/.okta-lab/iac-okta-cutover.pem`. Then **deactivate** the app; activate it only for a cutover window. Run **Actions → okta-cutover** with an app, `list`/`remove`/`restore`, and the change (`github:<issue>`). After both copies apply, delete the one-time files in the next PR (lab 1: PR #16). hr-portal claims: a msgraph custom claims policy (one-time PUT, then an update resource), and groups from the app registration, because the policy has no group claim type (lab 1: PR #16).
 
@@ -59,16 +65,25 @@ curl -s https://<okta-org>.okta.com/.well-known/okta-organization | python3 -m j
 
 ---
 
-## 2. Tools
+## 2. Windows setup and tools
 
-Optional: to work from a separate Linux VM (virtual machine) instead of the Mac itself, build it first with [workstation-vm.md](workstation-vm.md), then continue here inside the VM.
-
-Paste the install block for your machine from [tool-install.md](tool-install.md): Apple Silicon Mac, Linux (Debian or Ubuntu), or Windows through WSL2 (Windows Subsystem for Linux). Each block checksum-verifies every download and puts it in `lab-tools/` (git-ignored). On Linux and Windows the GitHub CLI (command-line interface) and `jq` are part of the block; on a Mac, also run:
-
-```bash
-brew install gh jq
-gh auth login
-```
+1. **WSL2 and Ubuntu.** In **PowerShell, run as Administrator** (Start → type PowerShell → right-click → Run as administrator):
+   ```powershell
+   wsl --install -d Ubuntu-24.04
+   wsl -l -v      # after the restart: VERSION column must say 2
+   ```
+   Restart when asked. Ubuntu opens and asks for a Linux user name and password (for `sudo` inside Ubuntu; store it in the password manager). From here on, use the Ubuntu terminal only.
+2. **Browser sign-ins through Windows,** so `az login` and `gh auth login` open your Windows browser:
+   ```bash
+   sudo apt-get update && sudo apt-get install -y wslu < /dev/null
+   grep -q 'BROWSER=wslview' ~/.bashrc || echo 'export BROWSER=wslview' >> ~/.bashrc
+   ```
+   Close and reopen the Ubuntu terminal.
+3. **Tools.** Paste [tool-install.md](tool-install.md#linux-debian-or-ubuntu) Linux steps 1 to 4 into the Ubuntu terminal (step 1 is part 3 below; do it there). They install the Azure CLI (command-line interface), the GitHub CLI, `jq`, `openssl`, `python3`, and the pinned Terraform, Conftest and SailPoint CLI into `lab-tools/` (git-ignored), checksum-verifying every download. Then:
+   ```bash
+   gh auth login       # GitHub.com, HTTPS, log in with a web browser
+   ```
+4. **Editor (optional).** Install VS Code (Visual Studio Code) on Windows with the **WSL** extension, then run `code .` from the repo folder in Ubuntu. Do not edit repo files with Windows Notepad.
 
 Check:
 ```bash
@@ -92,7 +107,7 @@ cd okta-to-entra-migration
 mkdir -p ~/.okta-lab && chmod 700 ~/.okta-lab
 ```
 
-The tool install block expects the repo at `~/Projects/okta-to-entra-migration`; change the path in the block if you use another.
+Run this in the Ubuntu terminal, so `~` is your Ubuntu home (`/home/<linux-user>`), not `C:\Users\...`. The tool install block expects the repo at `~/Projects/okta-to-entra-migration`; change the path in the block if you use another. To see the folder in File Explorer, type `\\wsl$\Ubuntu-24.04\home\<linux-user>\Projects` in the address bar (browse only; edit in VS Code).
 
 ---
 
@@ -100,9 +115,9 @@ The tool install block expects the repo at `~/Projects/okta-to-entra-migration`;
 
 Lab only. A real migration reads the client's existing org instead. The seed builds what [okta-seed-spec.md](okta-seed-spec.md) describes: 8 users, groups `IT`, `CustServ`, `Finance`, 4 custom SAML apps, 1 OIDC app, 1 Slack gallery app, a network zone, a password policy, a global session policy, an authentication policy and a custom authorization server.
 
-1. **Seeding token (lab shortcut).** Admin Console (`https://<okta-org>-admin.okta.com`) → **Security** → **API** → **Tokens** → **Create token**, name `iac-run1-seed`. Save it:
+1. **Seeding token (lab shortcut).** Admin Console (`https://<okta-org>-admin.okta.com`) → **Security** → **API** → **Tokens** → **Create token**, name `iac-run1-seed`. Copy it, then save it from the clipboard:
    ```bash
-   pbpaste > ~/.okta-lab/ssws-token && chmod 600 ~/.okta-lab/ssws-token
+   powershell.exe -NoProfile -Command Get-Clipboard | tr -d '\r\n' > ~/.okta-lab/ssws-token && chmod 600 ~/.okta-lab/ssws-token
    ```
    Register it (production verdict: Not OK; revoke at the end of the run).
 2. **Dry run, then apply.** Type one command per line (a multi-line paste split an `export` in lab 1):
@@ -126,7 +141,8 @@ Lab only. A real migration reads the client's existing org instead. The seed bui
 1. Admin Console → **Applications** → **Applications** → **Create App Integration** → **API Services** → name `iac-okta-reader` → **Save**.
 2. **General** tab → **Client Credentials** → **Edit** → **Public key / Private key** → **Add key** → **Generate new key**. Copy the private key in PEM format **now** (it is shown once) and save it:
    ```bash
-   pbpaste > ~/.okta-lab/iac-okta-reader.pem && chmod 600 ~/.okta-lab/iac-okta-reader.pem
+   powershell.exe -NoProfile -Command Get-Clipboard | tr -d '\r' > ~/.okta-lab/iac-okta-reader.pem && chmod 600 ~/.okta-lab/iac-okta-reader.pem
+   head -1 ~/.okta-lab/iac-okta-reader.pem      # expect a -----BEGIN ... PRIVATE KEY----- line
    ```
    Note the key ID (`kid`). **Save**. UNVERIFIED: the PEM tab label in the key dialog.
 3. If **Require Demonstrating Proof of Possession (DPoP) header in token requests** is ticked, untick it; the scripts and provider here do not send DPoP. UNVERIFIED: whether new orgs tick it by default.
@@ -147,7 +163,7 @@ Lab only. A real migration reads the client's existing org instead. The seed bui
 
 ## 6. Azure: state storage and the snapshot identity
 
-1. **Sign in.** Security defaults may block device-code sign-in; use the browser flow in a private window:
+1. **Sign in.** Security defaults may block device-code sign-in; use the browser flow. `az login` opens your Windows browser through `wslview` (part 2); to use a private window instead, copy the sign-in URL into an InPrivate window. UNVERIFIED: if no browser opens, `az login` prints the URL to copy.
    ```bash
    az config set core.login_experience_v2=off
    az login --tenant <tenant-id>
@@ -512,7 +528,7 @@ Drift is never fixed automatically. Either put the portal change back, or codify
 
 ---
 
-## 16. Troubleshooting (lab 1 lessons)
+## 16. Troubleshooting (lab 1 lessons, plus Windows setup)
 
 | Symptom | Cause | Fix |
 |---|---|---|
@@ -535,4 +551,7 @@ Drift is never fixed automatically. Either put the portal change back, or codify
 | No `groups` attribute in the SAML response | The custom claims policy cannot emit groups | On the app registration: `group_membership_claims = ["ApplicationGroup"]` and a `saml2_token` optional claim `groups` with `cloud_displayname` |
 | `okta-cutover`: "token request failed (HTTP 400 invalid_client …)" | `iac-okta-cutover` is deactivated (by design between waves) | Admin Console → Applications → `iac-okta-cutover` → Activate; deactivate again after the window |
 | `okta-cutover`: HTTP 403 "You do not have permission" on remove or restore | The app is not a target of the App Administrator role | Add the app to the role's targets, by change |
+| Windows: `$'\r': command not found` or `bad interpreter` running a script | File has Windows line endings (cloned or saved on the Windows side) | Clone inside Ubuntu (part 3); fix one file with `sed -i 's/\r$//' <file>` |
+| Windows: `chmod 600` has no effect | Repo or `~/.okta-lab` sits under `/mnt/c` | Move them into the Ubuntu home folder (`~`) |
+| Windows: `az login` or `gh auth login` opens no browser | `BROWSER` not set | Part 2 step 2, then reopen the terminal; or copy the printed URL into a Windows browser |
 | Microsoft 365 trial checkout asks for a billing profile, then fails | Commerce flow from the wrong account | Start the trial from Entra admin center → Licenses → Try/Buy as a work account in the tenant |
