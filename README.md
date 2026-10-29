@@ -4,7 +4,7 @@ Move applications from **Okta** to **Microsoft Entra ID** "as code": every app, 
 
 This repo is a working proof of concept, built on free accounts with dummy data. It is also a step-by-step guide you can follow to run the same migration on your own lab, and later adapt to a real environment.
 
-> **Status (updated 2026-10-26):** Run 1, Lab Phase 4 in progress. Lab Phases 1 to 3 complete: Okta discovery and nightly snapshot, Entra brownfield import, 4 SAML apps and 1 OIDC app translated, and the pipeline with all four exit tests passed. Wave-01 is planned ([docs/wave-01-plan.md](docs/wave-01-plan.md)): `it-tools` and `hr-portal` move from wave-00, get tested through Entra, then lose their Okta assignments; a rollback drill is timed on `it-tools`. The move (PR #14) is applied in both copies: nothing destroyed, 15 objects imported into wave-01, new report-only `LAB-CA11`. hr-portal claims are on the custom claims policy with a new `groups` claim (PR #16, applied). Sign-in tests through Entra passed 2026-10-26 (Ada and Gus; Gus refused on it-tools; the `groups` claim arrives under Entra's name with Entra group names). Next: the Okta cutover identity. Must finish by 2026-11-15 (P2 trial). Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
+> **Status (updated 2026-10-26):** Run 1, Lab Phase 4 in progress. Lab Phases 1 to 3 complete: Okta discovery and nightly snapshot, Entra brownfield import, 4 SAML apps and 1 OIDC app translated, and the pipeline with all four exit tests passed. Wave-01 is planned ([docs/wave-01-plan.md](docs/wave-01-plan.md)): `it-tools` and `hr-portal` move from wave-00, get tested through Entra, then lose their Okta assignments; a rollback drill is timed on `it-tools`. The move (PR #14) is applied in both copies: nothing destroyed, 15 objects imported into wave-01, new report-only `LAB-CA11`. hr-portal claims are on the custom claims policy with a new `groups` claim (PR #16, applied). Sign-in tests through Entra passed 2026-10-26 (Ada and Gus; Gus refused on it-tools; the `groups` claim arrives under Entra's name with Entra group names). The Okta cutover identity is built and switched off; its workflow is in PR #18. Next: merge it, load the key secret, test a `list` run, then cut over it-tools. Must finish by 2026-11-15 (P2 trial). Live detail is at the top of [docs/findings-log.md](docs/findings-log.md).
 
 > **Lab only.** Personal free accounts, fictional users, nothing to do with any company or client. Do not point this repo at a production tenant without reading [Adapting this to your own environment](#adapting-this-to-your-own-environment).
 
@@ -348,7 +348,7 @@ Graph permissions: reader and planner `Directory.Read.All`, `Policy.Read.All`; a
 
 **4.1 Wave plan:** pick two apps from wave-00 (one low risk, one "tier 1") and move them into `entra/waves/wave-01/` through a PR with a change ticket and approval. ✅ Planned 2026-10-26 in [docs/wave-01-plan.md](docs/wave-01-plan.md): `it-tools` (low risk, 2-day window) and `hr-portal` (tier 1, 5-day window), chosen by a risk score. The apps move without a rebuild: `moved` + `removed` blocks in wave-00, `import` blocks in wave-01. ✅ Moved by PR #14, applied 2026-10-26: 0 destroyed, 15 imported, same object IDs (create the wave-01 state files with your own login first, as for every new root). ✅ hr-portal claims PR #16 applied 2026-10-26: custom claims policy plus a `groups` claim from the app registration; the one-time move files deleted.
 
-**4.2 Okta cutover identity** `iac-okta-cutover`: an Okta service app with only `okta.apps.manage`, switched on for the wave and off afterwards.
+**4.2 Okta cutover identity** `iac-okta-cutover`: an Okta service app with only `okta.apps.manage`, switched on for the wave and off afterwards. 🚧 2026-10-26: created (private key JWT; App Administrator limited to the two wave-01 apps, so it can read any app but change only those), then deactivated. The `okta-cutover.yml` workflow (list, remove, restore an app's Okta group assignments; change gate; your approval) is in PR #18.
 
 **4.3 Validate:** users sign in through Entra during the validation window. ✅ 2026-10-26: Ada and Gus signed in from My Apps, all claims present, Gus refused on it-tools (`AADSTS50105`); screenshots in `docs/evidence/`. Check each screenshot's audience and time against the Entra sign-in log, not its file name.
 
@@ -419,7 +419,7 @@ These hold in the lab and should hold anywhere you use this method.
 
 ## 9. Adapting this to your own environment
 
-To run the lab on your own accounts, follow [docs/porting-guide.md](docs/porting-guide.md): it lists every value to replace, with file paths, and the rebuild order. To build it all without an AI assistant, use [docs/build-by-hand.md](docs/build-by-hand.md). The main values:
+To run the lab on your own accounts, follow [docs/porting-guide.md](docs/porting-guide.md): it lists every value to replace, with file paths, and the rebuild order. To build it all without an AI assistant, use [docs/build-by-hand.md](docs/build-by-hand.md). Both guides are written for a Windows 10 or 11 PC through WSL2 (Windows Subsystem for Linux, Ubuntu 24.04); Mac and Linux installs are in [docs/tool-install.md](docs/tool-install.md). The main values:
 
 | What | Where | Lab value |
 |---|---|---|
@@ -469,4 +469,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-26 (Run 1, Lab Phase 4 in progress: wave-01 planned in `docs/wave-01-plan.md`, move PR #14 applied, hr-portal claims PR #16 applied, sign-in tests passed; Lab Phase 3 complete; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._
+_Last updated: 2026-10-28 (build-by-hand and porting guide rewritten for Windows through WSL2; Run 1, Lab Phase 4 in progress: wave-01 planned in `docs/wave-01-plan.md`, move PR #14 applied, hr-portal claims PR #16 applied, sign-in tests passed, Okta cutover identity built; Lab Phase 3 complete; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._

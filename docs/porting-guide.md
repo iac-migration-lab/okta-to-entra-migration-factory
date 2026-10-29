@@ -7,6 +7,8 @@ Read with:
 - [lab-naming.md](lab-naming.md): the names this lab uses.
 - [okta-identity-engine-decision.md](okta-identity-engine-decision.md): the new Okta org must run Identity Engine.
 
+**Your computer:** written for Windows 10 or 11 through WSL2 (Windows Subsystem for Linux, version 2). Set up WSL2, Ubuntu 24.04 and the tools first (build-by-hand part 2). Run every `bash` block below in the **Ubuntu** terminal, not PowerShell, and keep the repo inside Ubuntu's home folder (`~/Projects/...`), never under `/mnt/c/...`. The repo's `.gitattributes` keeps Linux line endings, so the bash scripts run unchanged.
+
 ## 1. What moves and what does not
 
 | Thing | Moves? | Why |
@@ -26,7 +28,8 @@ Read with:
 Recommended: a fresh repo with a clean history, keeping the old lab's docs as an archive.
 
 ```bash
-# 1. Copy the files without the old history
+# 1. Copy the files without the old history (Ubuntu terminal; ~ is /home/<linux-user>)
+mkdir -p ~/Projects
 git clone https://github.com/iac-migration-lab/okta-to-entra-migration-factory.git ~/Projects/<new-repo>
 cd ~/Projects/<new-repo>
 rm -rf .git
@@ -59,7 +62,7 @@ gh api repos/<new-org>/<new-repo>/actions/oidc/customization/sub
 
 ## 3. Every value to replace
 
-Collect the new values first (fill in the right-hand column), then replace them file by file.
+Collect the new values first (fill in the right-hand column), then replace them file by file. Edit in VS Code (Visual Studio Code) with the WSL extension (`code .` from the repo folder in Ubuntu), not Windows Notepad, which can save Windows line endings into the scripts.
 
 ### 3.1 Values you choose or get at sign-up
 
@@ -69,6 +72,8 @@ Collect the new values first (fill in the right-hand column), then replace them 
 | Okta base URL | `okta.com` | `okta-inventory/providers.tf` (`base_url`) | |
 | Okta reader client ID | `0oa18siafpuScaofm698` | `okta-inventory/providers.tf` (`client_id`); GitHub variable `OKTA_CLIENT_ID` | |
 | Okta reader key ID | `iac-okta-reader-2026-10-16` | GitHub variable `OKTA_KEY_ID`; local `OKTA_API_PRIVATE_KEY_ID` | |
+| Okta cutover client ID and key ID | `0oa1965gqj5LStpWJ698`, `iac-okta-cutover-2026-10-26` | GitHub environment `okta-cutover` variables `OKTA_CUTOVER_CLIENT_ID`, `OKTA_CUTOVER_KEY_ID` | Create the app first (build-by-hand, Lab Phase 4 note) |
+| Okta wave app and group IDs | `0oa18sc4rb0oNOWxW698`, `00g18sc4r6df83yDe698`, … | `.github/okta-cutover-apps.json`; org URL in `.github/workflows/okta-cutover.yml` | Copy from `okta-inventory/imports.tf` after regenerating it |
 | Okta test user login domain | `iaclab.example` | `okta-inventory/seed/seed-okta-org.sh` (`LOGIN_DOMAIN`), `okta-inventory/seed/reset-seed-passwords.sh` | |
 | Lab mailbox (seed user emails, budget alerts) | `la-migration-lab` @ `outlook.com` | `okta-inventory/seed/seed-okta-org.sh` (`MAIL_BASE`, `MAIL_DOMAIN`), `azure/bootstrap/budget.tf` (`contact_emails`) | |
 | Entra tenant ID | `bed5d4c3-98f0-4c73-9e4c-0b6cd3b9a0a4` | `entra/legacy/tenants/lab.tfvars`, `entra/platform/tenants/lab.tfvars` and `lab-np.tfvars`, `entra/waves/wave-00/tenants/lab.tfvars` and `lab-np.tfvars`, `entra/waves/wave-01/tenants/lab.tfvars` and `lab-np.tfvars`; GitHub variable `AZURE_TENANT_ID` | |
@@ -124,7 +129,7 @@ A names-only subject (`repo:<org>/<repo>:...`) fails with `AADSTS700213`.
 
 ## 5. Find anything you missed
 
-After replacing, this must print nothing (run from the repo root):
+After replacing, this must print nothing (run from the repo root in the Ubuntu terminal):
 
 ```bash
 git grep -n -E "integrator-2631921|0oa18siafpuScaofm698|bed5d4c3-98f0|6ea51c80-90de|stiaclabtfstate02|21008cb0-56d6|b4a88d50-ea8b|1028c48b-19bd|rst188pzg3iEP5uGh698|336396784|1399352055|lamigrationlaboutlook|la-migration-lab|iac-migration-lab/okta-to-entra" -- ':!docs/archive'
@@ -136,13 +141,14 @@ Then run the checks:
 source lab-tools/env.sh
 terraform fmt -recursive -check
 policy/test.sh   # must end "policy self-test OK" (it uses the new bg-ca-exclusion ID)
+git ls-files --eol | grep -c 'w/crlf'   # must print 0: no Windows line endings crept in while editing
 ```
 
 ## 6. Rebuild order
 
 State is rebuilt, never copied. Follow [build-by-hand.md](build-by-hand.md) in order. The porting-specific points:
 
-1. **Accounts and tools** (build-by-hand parts 1 and 2). Check the Okta org is Identity Engine before anything else.
+1. **Accounts, WSL2 and tools** (build-by-hand parts 1 and 2). Check the Okta org is Identity Engine before anything else.
 2. **Seed Okta**, then **regenerate the Okta inventory:** replace every `id` in `okta-inventory/imports.tf` with the new org's IDs (the build-by-hand guide lists the API calls), set `default_app_signon_policy_id`, run `terraform plan -generate-config-out=generated.tf` only for objects whose settings differ, and plan until "No changes".
 3. **Azure state storage and `iac-reader`**, then move the Okta state into the new storage account.
 4. **Entra brownfield:** build the legacy objects by hand, then replace the IDs in `entra/legacy/imports.tf` and the `locals.tf` values. Plan until "No changes".
@@ -151,6 +157,7 @@ State is rebuilt, never copied. Follow [build-by-hand.md](build-by-hand.md) in o
 
 ## 7. Porting checklist
 
+- [ ] WSL2 Ubuntu 24.04 set up; repo and `~/.okta-lab/` inside the Ubuntu home folder
 - [ ] New Okta org is Identity Engine (`"pipeline": "idx"`)
 - [ ] Repo copied; old records archived; new findings log and permission register started
 - [ ] New public repo in a GitHub org; org ID, repo ID and subject format recorded

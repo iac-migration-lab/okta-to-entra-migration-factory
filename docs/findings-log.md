@@ -1,5 +1,5 @@
 Current run: 1 (Implementation Phase 0)
-Current lab phase: 4 (wave-01 moved, claims applied, sign-in tests passed 2026-10-26; next: iac-okta-cutover identity, wave-01-plan step 5)
+Current lab phase: 4 (wave-01 moved, claims applied, sign-in tests passed, cutover identity built 2026-10-26; okta-cutover.yml in PR #18)
 
 # Findings Log
 
@@ -739,3 +739,26 @@ Current phase set to 1 at the top of this log.
 - Evidence: `docs/evidence/2026-10-26-signin-ada-it-tools.png`, `…-ada-hr-portal.png`, `…-gus-hr-portal.png`, `…-gus-it-tools-refused.png`, `…-gus-it-tools-wrong-link.png`.
 - Change to the client plan, if any: check every screenshot's audience and timestamp against the sign-in log, not its file name. The groups claim needs an app-owner decision before cutover: accept Entra's attribute name and group names, or rename and map them in the app.
 - Accepted risks added, if any: run 1 accepts the groups claim name and values difference on the test site (no real app reads it).
+
+## 2026-10-26, Run 1, Lab Phase 4, Okta cutover identity and okta-cutover.yml
+- What the docs said: `docs/wave-01-plan.md` step 5: `iac-okta-cutover`, private key JWT, `okta.apps.manage` only, deactivated when not in use, register row at grant time. Step 6: `okta-cutover.yml`, `workflow_dispatch` with `app` and `action`, environment `okta-cutover` with the owner as reviewer, change gate, key from an environment secret, before and after group list. UNVERIFIED: assignment `DELETE`/`PUT` work with `okta.apps.manage` alone.
+- What actually happened:
+  - Local, bootstrap (logged here): RSA 2048 key generated on the owner's Mac by Claude straight into `~/.okta-lab/iac-okta-cutover.pem` (600; never printed; public JWK sent to Okta). Okta API with the SSWS token (register #4), as for `iac-okta-reader`: app `iac-okta-cutover` (`0oa1965gqj5LStpWJ698`, service, `private_key_jwt`, `client_credentials`), grant `okta.apps.manage`, role `APP_ADMIN` (`IFIFAX2BIRGUSTQ`) targeted to the two wave-01 apps. Register #28 to #30.
+  - Role target API: `PUT /oauth2/v1/clients/{clientId}/roles/{roleId}/targets/catalog/apps/{appName}/{appId}`; `{appName}` is the app's internal `name` (`integrator-2631921_iacsamlittools_1`), not `saml_2_0` (that gave HTTP 400).
+  - Checks as `iac-okta-cutover` (script `.github/scripts/okta-cutover.sh`, run locally): `list` on both apps (it-tools: IT; hr-portal: IT, CustServ, Finance, priorities 0 to 2); `restore` of it-tools' existing IT assignment, an idempotent `PUT`: HTTP 200, no change. On `iac-saml-finance-ledger` (not a target): read allowed, idempotent `PUT` refused HTTP 403. So **writes are limited by the role target; reads are org-wide**. The UNVERIFIED item is answered for `PUT`; `DELETE` is first used at the it-tools cutover.
+  - Deactivated with `POST /api/v1/apps/{id}/lifecycle/deactivate`. A token request then fails `HTTP 400 invalid_client "Invalid value for 'client_id'"`; the script says to activate the app.
+  - GitHub environment `okta-cutover` created (owner required reviewer, `prevent_self_review` off, deployment branch `main` only) with the two variables. Secret `OKTA_CUTOVER_PRIVATE_KEY` left for the owner to load.
+  - Change gate: new optional `CHANGE_REF` (input `change_ref` on `change-gate.yml`) so a manual run with no PR names its change; PR runs unchanged.
+  - Change issue #17, PR #18.
+- Time taken: about 45 minutes.
+- Evidence: issue #17, PR #18, register #28 to #30.
+- Change to the client plan, if any: an Okta OAuth service app needs an admin role as well as scopes; target the role to the wave's apps. App admin roles still read every app, so the inventory of what the cutover identity can see is wider than what it can change. Activation of the cutover identity is an admin step per window (the identity cannot activate itself).
+- Accepted risks added, if any: run 1 creates the identity with the SSWS token and generates its key on the owner's Mac (register #28 "production should use").
+
+## 2026-10-28, Run 1, Lab Phase 4, Build-by-hand and porting guide rewritten for Windows
+- What the docs said: `docs/build-by-hand.md` and `docs/porting-guide.md` were written for a Mac, with a pointer to the command-differences table in `docs/tool-install.md` for Linux and Windows.
+- What actually happened: both rewritten for Windows 10 or 11 through WSL2 (Ubuntu 24.04), the Windows path `docs/tool-install.md` already supports. Build-by-hand part 2 now installs WSL2, sets `BROWSER=wslview`, and runs the Linux tool steps; clipboard saves use `powershell.exe -NoProfile -Command Get-Clipboard | tr -d '\r'` instead of `pbpaste`; `brew install gh jq` is gone (apt installs them); new troubleshooting rows for line endings, `/mnt/c` permissions and browser sign-in. The porting guide adds a WSL2 note, an editor note, a checklist line and a line-ending check (`git ls-files --eol | grep -c 'w/crlf'` must print 0; checked on the Mac: 0). Every bash block is otherwise unchanged. Native PowerShell was considered and rejected: every repo script is bash.
+- Time taken: about 20 minutes.
+- Evidence: this commit.
+- Change to the client plan, if any: none. The Windows steps are not yet run end to end on a Windows PC; run 2 or a Windows build should log what differs.
+- Accepted risks added, if any: none.
