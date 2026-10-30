@@ -23,6 +23,7 @@ Three files are records kept as the lab runs. They are the evidence for every de
 |---|---|
 | [build-by-hand.md](build-by-hand.md) | Build the whole lab yourself, every command and click, no AI assistant |
 | [porting-guide.md](porting-guide.md) | Move this repo to new accounts: every value to replace, and the rebuild order |
+| [porting-guide-windows.md](porting-guide-windows.md) | Windows, PowerShell only: copy the repo, strip all lab material, fill your values, rebuild |
 | [build-phases.md](build-phases.md) | Follow the detailed steps of one lab phase |
 | [tool-install.md](tool-install.md) | Install the pinned tools (Terraform, Conftest, Azure CLI and others) with checksums |
 | [workstation-vm.md](workstation-vm.md) | Build an optional Ubuntu workstation VM (virtual machine) in UTM on the Mac: SSH with a 1Password key, firewall, one-repo GitHub token, no cloud credentials |
@@ -54,4 +55,4 @@ Three files are records kept as the lab runs. They are the evidence for every de
 - Define every acronym in parentheses the first time a document uses it.
 - Mark anything not checked against current vendor docs with `UNVERIFIED:`.
 - Never write a secret, private key, token, password or exported user data here.
-- When a step, command, grant or lesson changes, update the README, [build-by-hand.md](build-by-hand.md) and, if a new account-specific value appears, [porting-guide.md](porting-guide.md) in the same commit.
+- When a step, command, grant or lesson changes, update the README, [build-by-hand.md](build-by-hand.md) and, if a new account-specific value appears, [porting-guide.md](porting-guide.md) and the `$tokens` list in [porting-guide-windows.md](porting-guide-windows.md) section 4 in the same commit.

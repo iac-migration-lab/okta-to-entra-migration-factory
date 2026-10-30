@@ -4,7 +4,7 @@ Every step to build this lab yourself, in order, with no AI assistant: Okta read
 
 **Who this is for:** someone on a Windows 10 or 11 PC, comfortable pasting commands into a terminal and clicking through admin portals. You do not write Terraform from scratch; the code is in the repo.
 
-**Moving to new accounts?** Do [porting-guide.md](porting-guide.md) first. It lists every value to replace. This guide uses placeholders in `<angle brackets>` for those values.
+**Moving to new accounts?** Do [porting-guide.md](porting-guide.md) first, or on Windows without WSL2, [porting-guide-windows.md](porting-guide-windows.md) (PowerShell only; strips the lab material). It lists every value to replace. This guide uses placeholders in `<angle brackets>` for those values.
 
 **Conventions**
 - Commands are written for Windows through WSL2 (Windows Subsystem for Linux, version 2), which runs Ubuntu Linux inside Windows. Run every `bash` block in the **Ubuntu** terminal (Start menu → Ubuntu 24.04, or Windows Terminal → Ubuntu), never in PowerShell or Command Prompt. Only part 2's first block runs in PowerShell. Why not native Windows: every repo script is bash, and secret files rely on Linux permissions ([tool-install.md](tool-install.md#why-wsl2-not-native-windows)).

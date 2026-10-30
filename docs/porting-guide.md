@@ -4,6 +4,7 @@ How to take this repo to a new set of accounts (a new Okta org, Entra tenant, Az
 
 Read with:
 - [build-by-hand.md](build-by-hand.md): the full build, step by step, with no AI assistant.
+- [porting-guide-windows.md](porting-guide-windows.md): the same port on Windows with PowerShell only (no WSL2), which also strips every piece of lab material for a clean starting repo.
 - [lab-naming.md](lab-naming.md): the names this lab uses.
 - [okta-identity-engine-decision.md](okta-identity-engine-decision.md): the new Okta org must run Identity Engine.
 

@@ -449,6 +449,7 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 | [docs/build-phases.md](docs/build-phases.md) | Detailed steps for every lab phase |
 | [docs/build-by-hand.md](docs/build-by-hand.md) | Every command and click to build the lab yourself, no AI assistant |
 | [docs/porting-guide.md](docs/porting-guide.md) | Moving this repo to new accounts: every value to replace, rebuild order |
+| [docs/porting-guide-windows.md](docs/porting-guide-windows.md) | Windows with PowerShell only: copy the repo, strip all lab material, fill your values, rebuild |
 | [docs/git-check-plans-info.md](docs/git-check-plans-info.md) | The four required PR checks and the branch protection command |
 | [docs/findings-log.md](docs/findings-log.md) | What actually happened, in order, with evidence (current phase at the top) |
 | [docs/runbooks/](docs/runbooks/README.md) | One runbook per platform team (Okta, Entra, SailPoint, Azure, GitHub): ownership, daily checks, procedures, alert response |
@@ -469,4 +470,4 @@ Every Entra folder takes two variables, `tenant_key` (short label, `lab` here) a
 
 This README is updated at the end of every lab phase or working session that changes status, steps, names, versions, or commands. When you update it, change the **Status** line at the top, the step status markers in section 6, and any new lessons in section 7.
 
-_Last updated: 2026-10-28 (build-by-hand and porting guide rewritten for Windows through WSL2; Run 1, Lab Phase 4 in progress: wave-01 planned in `docs/wave-01-plan.md`, move PR #14 applied, hr-portal claims PR #16 applied, sign-in tests passed, Okta cutover identity built; Lab Phase 3 complete; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._
+_Last updated: 2026-10-30 (Windows PowerShell porting guide that strips lab material; build-by-hand and porting guide rewritten for Windows through WSL2; Run 1, Lab Phase 4 in progress: wave-01 planned in `docs/wave-01-plan.md`, move PR #14 applied, hr-portal claims PR #16 applied, sign-in tests passed, Okta cutover identity built; Lab Phase 3 complete; per-platform runbooks added in `docs/runbooks/`; Linux and Windows tool installs added; optional Ubuntu workstation VM in `docs/workstation-vm.md`)._
